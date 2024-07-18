@@ -1,6 +1,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
 
 int main(int argc, char *argv[]) {
     pid_t pid1, pid2; 
