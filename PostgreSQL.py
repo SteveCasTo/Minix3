@@ -3,50 +3,69 @@ from psycopg2 import OperationalError
 import tkinter as tk
 from tkinter import messagebox
 
-def conectar_postgres(user, password):
+# Función que intenta conectarse a PostgreSQL y obtener el PID
+def conectar_postgres():
+    user = entry_user.get()  # Obtiene el usuario ingresado
+    password = entry_password.get()  # Obtiene la contraseña ingresada
+    
     try:
-        # Intentar conectar a la base de datos "postgres" usando las credenciales del usuario
+        # Conexión a la base de datos PostgreSQL
         conexion = psycopg2.connect(
             host="localhost",
             database="postgres",  # Base de datos por defecto
             user=user,
             password=password
         )
-        messagebox.showinfo("Éxito", "Conexión exitosa a PostgreSQL")
-        conexion.close()  # Cerrar conexión si es exitosa
+        cursor = conexion.cursor()
+        cursor.execute("SELECT pg_backend_pid();")  # Obtiene el PID del proceso actual
+        pid = cursor.fetchone()[0]
+        conexion.close()  # Cierra la conexión
+        # Muestra el PID en el campo de texto
+        text_pid.config(state=tk.NORMAL)  # Habilitar edición temporalmente
+        text_pid.delete(1.0, tk.END)  # Limpia el campo
+        text_pid.insert(tk.END, f"PID: {pid}")  # Muestra el PID
+        text_pid.config(state=tk.DISABLED)  # Deshabilitar edición nuevamente
+        messagebox.showinfo("Éxito", "Conexión exitosa a PostgreSQL.")
+        
     except OperationalError as e:
         messagebox.showerror("Error", "Fallo en la conexión: Verifica las credenciales")
+        # Limpia el campo de PID si hubo error
+        text_pid.config(state=tk.NORMAL)
+        text_pid.delete(1.0, tk.END)
+        text_pid.config(state=tk.DISABLED)
         print(f"Error: {e}")
 
-def validar_conexion():
-    # Obtener los valores de usuario y contraseña de la interfaz
-    user = usuario_entry.get()
-    password = contrasena_entry.get()
-    conectar_postgres(user, password)
+# Configuración de la ventana principal
+root = tk.Tk()
+root.title("Conexión a PostgreSQL")
 
-def cerrar_ventana():
-    ventana.quit()
+# Etiqueta y campo de entrada para el usuario
+label_user = tk.Label(root, text="Usuario:")
+label_user.pack()
+entry_user = tk.Entry(root)
+entry_user.pack()
 
-# Crear la ventana principal
-ventana = tk.Tk()
-ventana.title("Conectar a PostgreSQL")
+# Etiqueta y campo de entrada para la contraseña
+label_password = tk.Label(root, text="Contraseña:")
+label_password.pack()
+entry_password = tk.Entry(root, show="*")
+entry_password.pack()
 
-# Etiquetas y campos de entrada para el usuario y contraseña
-tk.Label(ventana, text="Usuario:").grid(row=0, column=0, padx=10, pady=10)
-usuario_entry = tk.Entry(ventana)
-usuario_entry.grid(row=0, column=1, padx=10, pady=10)
+# Botón para conectar
+button_connect = tk.Button(root, text="Conectar", command=conectar_postgres)
+button_connect.pack()
 
-tk.Label(ventana, text="Contraseña:").grid(row=1, column=0, padx=10, pady=10)
-contrasena_entry = tk.Entry(ventana, show="*")  # Ocultar la contraseña con '*'
-contrasena_entry.grid(row=1, column=1, padx=10, pady=10)
+# Campo para mostrar el PID
+label_pid = tk.Label(root, text="PID de la conexión:")
+label_pid.pack()
 
-# Botón para aceptar y validar la conexión
-aceptar_btn = tk.Button(ventana, text="Aceptar", command=validar_conexion)
-aceptar_btn.grid(row=2, column=0, padx=10, pady=10)
+text_pid = tk.Text(root, height=1, width=30)
+text_pid.pack()
+text_pid.config(state=tk.DISABLED)  # Deshabilita la edición del campo PID
 
-# Botón para cancelar y cerrar la ventana
-cancelar_btn = tk.Button(ventana, text="Cancelar", command=cerrar_ventana)
-cancelar_btn.grid(row=2, column=1, padx=10, pady=10)
+# Botón para salir
+button_exit = tk.Button(root, text="Cancelar", command=root.quit)
+button_exit.pack()
 
-# Iniciar el loop de la interfaz gráfica
-ventana.mainloop()
+# Ejecutar la interfaz
+root.mainloop()
