@@ -1,9 +1,3 @@
-import psycopg2
-from psycopg2 import OperationalError
-import tkinter as tk
-from tkinter import messagebox
-
-# Función que intenta conectarse a PostgreSQL y obtener el PID
 def conectar_postgres():
     user = entry_user.get()
     password = entry_password.get()
@@ -16,50 +10,78 @@ def conectar_postgres():
             password=password
         )
         cursor = conexion.cursor()
-        cursor.execute("SELECT pg_backend_pid();")  # Obtener el PID del proceso
+
+        # Obtener el PID del proceso
+        cursor.execute("SELECT pg_backend_pid();")
         pid = cursor.fetchone()[0]
-        cursor.execute("SELECT get_idUsr(%s);", (user,))
+
+        # Obtener el ID de usuario
+        cursor.execute("SELECT id_usuario FROM Usuario WHERE nombre_usuario = %s;", (user,))
         id_user = cursor.fetchone()[0]
+
+        # Obtener el rol del usuario
+        cursor.execute("""
+            SELECT nombre_rol FROM Rol 
+            JOIN Rel ON Rol.id_rol = Rel.id_rol 
+            WHERE Rel.id_usuario = %s;
+        """, (id_user,))
+        rol_usuario = cursor.fetchone()[0]  # Obtiene el rol del usuario
+
+        # Insertar la sesión del usuario
         cursor.execute("SELECT insert_sesion(%s,%s);", (id_user, pid))
         conexion.commit()
+
+        # Cerrar la conexión
         conexion.close()
 
         # Muestra el PID en el campo de texto
-        text_pid.config(state=tk.NORMAL)  # Habilitar edición temporalmente
-        text_pid.delete(1.0, tk.END)  # Limpia el campo
-        text_pid.insert(tk.END, f"PID: {pid}")  # Muestra el PID
-        text_pid.config(state=tk.DISABLED)  # Deshabilitar edición nuevamente
-        messagebox.showinfo("Éxito", "Conexión exitosa a PostgreSQL.")
+        text_pid.config(state=tk.NORMAL)  
+        text_pid.delete(1.0, tk.END)  
+        text_pid.insert(tk.END, f"PID: {pid}")  
+        text_pid.config(state=tk.DISABLED)  
 
-        # Si la conexión fue exitosa, abrir la nueva interfaz
-        abrir_gestor_archivos()
+        messagebox.showinfo("Éxito", f"Conexión exitosa. Rol: {rol_usuario}")
+
+        # Si la conexión fue exitosa, abrir la nueva interfaz y pasar el rol del usuario
+        abrir_gestor_archivos(rol_usuario)
 
     except OperationalError as e:
         messagebox.showerror("Error", "Fallo en la conexión: Verifica las credenciales")
-        # Limpia el campo de PID si hubo error
         text_pid.config(state=tk.NORMAL)
         text_pid.delete(1.0, tk.END)
         text_pid.config(state=tk.DISABLED)
         print(f"Error: {e}")
 
+
 # Función para abrir la interfaz de Gestor de Archivos
-def abrir_gestor_archivos():
+def abrir_gestor_archivos(rol_usuario):
     # Crear una nueva ventana para el gestor de archivos
     root_gestor = tk.Toplevel()
     root_gestor.title("Gestor de Archivos")
 
-    # Crear la barra de menús
-    def obtener_funciones():
-        # Obtener funciones simuladas desde la base de datos (puedes cambiar esto por la consulta real)
-        return [
-            {"nombre": "Nuevo Documento de Texto", "categoria": "Crear documentos", "funcion": "crear_documento_texto"},
-            {"nombre": "Nuevo Documento Excel", "categoria": "Crear documentos", "funcion": "crear_documento_excel"},
-            {"nombre": "Compartir Documento", "categoria": "Compartir archivos", "funcion": "compartir_documento"},
-            {"nombre": "Eliminar Documento", "categoria": "Gestión de documentos", "funcion": "eliminar_documento"},
-            {"nombre": "Mover Documento", "categoria": "Gestión de documentos", "funcion": "mover_documento"}
-        ]
+    # Obtener funciones desde la base de datos según el rol
+    def obtener_funciones_por_rol(rol):
+        conexion = obtener_conexion()
+        cursor = conexion.cursor()
 
-    # Definir las funciones simuladas
+        # Si el rol es administrador, obtiene todas las funciones
+        if rol == "Administrador":
+            cursor.execute("SELECT nombre_funcion, nombre_categoria FROM Funcion;")
+        else:
+            cursor.execute("""
+                SELECT Funcion.nombre_funcion, Funcion.nombre_categoria 
+                FROM Funcion 
+                JOIN Rel ON Funcion.id_funcion = Rel.id_funcion
+                JOIN Rol ON Rol.id_rol = Rel.id_rol
+                WHERE Rol.nombre_rol = %s;
+            """, (rol,))
+        
+        funciones_db = cursor.fetchall()
+        cursor.close()
+        conexion.close()
+        return [{"nombre": f[0], "categoria": f[1]} for f in funciones_db]
+
+    # Definir funciones simuladas (las puedes reemplazar por las funciones reales)
     def crear_documento_texto():
         messagebox.showinfo("Función", "Se ha creado un nuevo documento de texto.")
 
@@ -77,16 +99,18 @@ def abrir_gestor_archivos():
 
     # Mapa de funciones
     funciones_mapa = {
-        "crear_documento_texto": crear_documento_texto,
-        "crear_documento_excel": crear_documento_excel,
-        "compartir_documento": compartir_documento,
-        "eliminar_documento": eliminar_documento,
-        "mover_documento": mover_documento
+        "Crear Documento de Texto": crear_documento_texto,
+        "Crear Documento de Excel": crear_documento_excel,
+        "Compartir Documento": compartir_documento,
+        "Eliminar Documento": eliminar_documento,
+        "Mover Documento": mover_documento
     }
 
     # Crear la barra de menús
     menu_bar = tk.Menu(root_gestor)
-    funciones_db = obtener_funciones()
+
+    # Obtener las funciones disponibles según el rol
+    funciones_db = obtener_funciones_por_rol(rol_usuario)
     categorias = set([funcion["categoria"] for funcion in funciones_db])
     menus = {}
 
@@ -97,15 +121,15 @@ def abrir_gestor_archivos():
     for funcion in funciones_db:
         categoria_menu = menus[funcion["categoria"]]
         funcion_nombre = funcion["nombre"]
-        funcion_codigo = funcion["funcion"]
 
-        if funcion_codigo in funciones_mapa:
-            categoria_menu.add_command(label=funcion_nombre, command=funciones_mapa[funcion_codigo])
+        if funcion_nombre in funciones_mapa:
+            categoria_menu.add_command(label=funcion_nombre, command=funciones_mapa[funcion_nombre])
         else:
             categoria_menu.add_command(label=funcion_nombre, command=lambda: messagebox.showerror("Error", "Función no disponible"))
 
     # Asignar la barra de menús a la ventana
     root_gestor.config(menu=menu_bar)
+
 
 # Configuración de la ventana principal (Login)
 root = tk.Tk()
