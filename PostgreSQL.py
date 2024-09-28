@@ -22,8 +22,8 @@ def conectar_postgres():
         # Obtener el rol del usuario
         cursor.execute("""
             SELECT nombre_rol FROM Rol 
-            JOIN Rel ON Rol.id_rol = Rel.id_rol 
-            WHERE Rel.id_usuario = %s;
+            JOIN Roles_User ON Rol.id_rol = Roles_User.id_rol 
+            WHERE Roles_User.id_usuario = %s;
         """, (id_user,))
         rol_usuario = cursor.fetchone()[0]  # Obtiene el rol del usuario
 
@@ -68,10 +68,10 @@ def abrir_gestor_archivos(rol_usuario):
             cursor.execute("SELECT nombre_funcion, nombre_categoria FROM Funcion;")
         else:
             cursor.execute("""
-                SELECT Funcion.nombre_funcion, Funcion.nombre_categoria 
+                SELECT Funcion.nombre_funcion 
                 FROM Funcion 
-                JOIN Rel ON Funcion.id_funcion = Rel.id_funcion
-                JOIN Rol ON Rol.id_rol = Rel.id_rol
+                JOIN Roles_User ON Funcion.id_funcion = Roles_User.id_funcion
+                JOIN Rol ON Rol.id_rol = Roles_User.id_rol
                 WHERE Rol.nombre_rol = %s;
             """, (rol,))
         
