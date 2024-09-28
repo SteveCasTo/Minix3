@@ -61,6 +61,7 @@ def abrir_gestor_archivos(rol_usuario):
     # Crear una nueva ventana para el gestor de archivos
     root_gestor = tk.Toplevel()
     root_gestor.title("Gestor de Archivos")
+
     # Mapa de funciones
     funciones_mapa = {
         "CrearDocumentoTexto": crear_documento_texto,
@@ -75,20 +76,24 @@ def abrir_gestor_archivos(rol_usuario):
 
     # Obtener las funciones disponibles según el rol
     funciones_db = obtener_funciones_por_rol(rol_usuario)
-    categorias = set([funcion["categoria"] for funcion in funciones_db])
+
+    # Agrupar funciones por UI
+    uis = set([funcion["ui"] for funcion in funciones_db])
     menus = {}
 
-    for categoria in categorias:
-        menus[categoria] = tk.Menu(menu_bar, tearoff=0)
-        menu_bar.add_cascade(label=categoria, menu=menus[categoria])
+    # Crear un menú por cada UI
+    for ui in uis:
+        menus[ui] = tk.Menu(menu_bar, tearoff=0)
+        menu_bar.add_cascade(label=ui, menu=menus[ui])
 
+    # Añadir las funciones a su correspondiente UI
     for funcion in funciones_db:
-        categoria_menu = menus[funcion["categoria"]]
+        ui_menu = menus[funcion["ui"]]
         funcion_nombre = funcion["nombre"]
         if funcion_nombre in funciones_mapa:
-            categoria_menu.add_command(label=funcion_nombre, command=funciones_mapa[funcion_nombre])
+            ui_menu.add_command(label=funcion_nombre, command=funciones_mapa[funcion_nombre])
         else:
-            categoria_menu.add_command(label=funcion_nombre, command=lambda: messagebox.showerror("Error", "Función no disponible"))
+            ui_menu.add_command(label=funcion_nombre, command=lambda: messagebox.showerror("Error", "Función no disponible"))
 
     # Asignar la barra de menús a la ventana
     root_gestor.config(menu=menu_bar)
@@ -108,11 +113,25 @@ def obtener_funciones_por_rol(rol):
         messagebox.showerror("Error", "Fallo en la conexión: Verifica las credenciales")
         print(f"Error: {e}")
     cursor = conexion.cursor()
-    cursor.execute("""SELECT Funcion.nombre_funcion FROM Funcion JOIN Funciones_Rol ON Funcion.id_funcion = Funciones_Rol.id_funcion JOIN Rol ON Rol.id_rol = Funciones_Rol.id_rol JOIN Roles_User ON Rol.id_rol = Roles_User.id_rol WHERE Roles_User.estado = 'Activo' AND Rol.nombre_rol = %s;""", (rol,))
+    
+    # Modificar la consulta para incluir la UI asociada
+    cursor.execute("""
+    SELECT UI.nombre_ui, Funcion.nombre_funcion
+    FROM Funcion
+    JOIN UI_Funcion ON Funcion.id_funcion = UI_Funcion.id_funcion
+    JOIN UI ON UI.id_ui = UI_Funcion.id_ui
+    JOIN Funciones_Rol ON Funcion.id_funcion = Funciones_Rol.id_funcion
+    JOIN Rol ON Rol.id_rol = Funciones_Rol.id_rol
+    JOIN Roles_User ON Rol.id_rol = Roles_User.id_rol
+    WHERE Roles_User.estado = 'Activo' AND Rol.nombre_rol = %s;
+    """, (rol,))
+    
     funciones_db = cursor.fetchall()
     cursor.close()
     conexion.close()
-    return [{"nombre": f} for f in funciones_db]
+
+    # Estructurar el resultado para que incluya tanto la UI como el nombre de la función
+    return [{"ui": f[0], "nombre": f[1]} for f in funciones_db]
 
 # Definir funciones simuladas (las puedes reemplazar por las funciones reales)
 def crear_documento_texto():
