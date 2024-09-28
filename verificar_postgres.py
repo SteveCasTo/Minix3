@@ -2,8 +2,11 @@ import psycopg2
 from psycopg2 import OperationalError
 import tkinter as tk
 from tkinter import messagebox
-
+user = None
+password = None
 def conectar_postgres():
+    global user
+    global password
     user = entry_user.get()
     password = entry_password.get()
     try:
@@ -92,7 +95,18 @@ def abrir_gestor_archivos(rol_usuario):
 
 # Obtener funciones desde la base de datos según el rol
 def obtener_funciones_por_rol(rol):
-    conexion = obtener_conexion()
+    global user
+    global password
+    try:
+        conexion = psycopg2.connect(
+            host="localhost",
+            database="Gestor_Archivos",
+            user=user,
+            password=password
+        )
+    except OperationalError as e:
+        messagebox.showerror("Error", "Fallo en la conexión: Verifica las credenciales")
+        print(f"Error: {e}")
     cursor = conexion.cursor()
     cursor.execute("""SELECT Funcion.nombre_funcion FROM Funcion JOIN Funciones_Rol ON Funcion.id_funcion = Funciones_Rol.id_funcion JOIN Rol ON Rol.id_rol = Funciones_Rol.id_rol JOIN Roles_User ON Rol.id_rol = Roles_User.id_rol WHERE Roles_User.estado = 'Activo' AND Rol.nombre_rol = %s;""", (rol,))
     funciones_db = cursor.fetchall()
