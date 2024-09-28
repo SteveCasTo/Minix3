@@ -1,3 +1,8 @@
+import psycopg2
+from psycopg2 import OperationalError
+import tkinter as tk
+from tkinter import messagebox
+
 def conectar_postgres():
     user = entry_user.get()
     password = entry_password.get()
