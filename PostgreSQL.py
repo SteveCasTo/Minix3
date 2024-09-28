@@ -52,7 +52,6 @@ def conectar_postgres():
         text_pid.config(state=tk.DISABLED)
         print(f"Error: {e}")
 
-
 # Función para abrir la interfaz de Gestor de Archivos
 def abrir_gestor_archivos(rol_usuario):
     # Crear una nueva ventana para el gestor de archivos
