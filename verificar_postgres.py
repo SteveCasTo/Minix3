@@ -12,12 +12,7 @@ def conectar_postgres():
     password = entry_password.get()
     try:
         # Conectar a la base de datos PostgreSQL
-        conexion = psycopg2.connect(
-            host="localhost",
-            database="Gestor_Archivos",
-            user=user,
-            password=password
-        )
+        conexion = conectar_base_datos()
         cursor = conexion.cursor()
 
         # Obtener el ID de usuario
@@ -122,7 +117,16 @@ def obtener_funciones_por_rol(rol):
     # Estructurar el resultado para que incluya tanto la UI como el nombre de la función
     return [{"ui": f[0], "nombre": f[1]} for f in funciones_db]
 
-# Definir funciones simuladas (las puedes reemplazar por las funciones reales)
+def conectar_base_datos():
+    global user
+    global password
+    return psycopg2.connect(
+            host="localhost",
+            database="Gestor_Archivos",
+            user=user,
+            password=password
+        )
+
 def crear_documento_texto():
     crear_doc(1,"texto")
 
@@ -130,12 +134,7 @@ def crear_documento_excel():
     crear_doc(2,"excel")
 
 def compartir_documento():
-    conexion = psycopg2.connect(
-            host="localhost",
-            database="Gestor_Archivos",
-            user=user,
-            password=password
-        )
+    conexion = conectar_base_datos()
     cursor = conexion.cursor()
     cursor.execute("SELECT get_idusr(%s);", (user,))
     id_user = cursor.fetchone()[0]
@@ -152,8 +151,8 @@ def compartir_documento():
             conexion.close()
             return
 
-        nom_user_compartir = simpledialog.askstring("Compartir con usuario", "Ingresa el nombre del usuario:")
-        if not nom_user_compartir:
+        nom_user_comp = simpledialog.askstring("Compartir con usuario", "Ingresa el nombre del usuario:")
+        if not nom_user_comp:
             messagebox.showerror("Error", "El nombre del usuario es obligatorio.")
             return
         cursor.execute("SELECT get_idusr(%s);", (nom_user_comp,))
@@ -166,7 +165,7 @@ def compartir_documento():
 
         fecha_exp = simpledialog.askstring("Fecha de expiración", "Ingresa la fecha de expiración (YYYY-MM-DD):")
         try:
-            fecha_exp = datetime.strptime(fecha_expiracion, '%Y-%m-%d').date()
+            fecha_exp = datetime.strptime(fecha_exp, '%Y-%m-%d').date()
         except ValueError:
             messagebox.showerror("Error", "Formato de fecha incorrecto.")
             return
@@ -180,12 +179,7 @@ def compartir_documento():
         messagebox.showerror("Error", f"No se pudo compartir el archivo. Error: {e}")
 
 def eliminar_documento():
-    conexion = psycopg2.connect(
-            host="localhost",
-            database="Gestor_Archivos",
-            user=user,
-            password=password
-        )
+    conexion = conectar_base_datos()
     cursor = conexion.cursor()
     try:
         nom_achv = simpledialog.askstring("Eliminar archivo", "Ingresa el nombre del archivo a eliminar:")
@@ -213,12 +207,7 @@ def mover_documento():
     messagebox.showinfo("Función", "El documento ha sido movido.")
 
 def crear_doc(id_tip, nom_tip):
-    conexion = psycopg2.connect(
-            host="localhost",
-            database="Gestor_Archivos",
-            user=user,
-            password=password
-        )
+    conexion = conectar_base_datos()
     cursor = conexion.cursor()
     cursor.execute("SELECT get_idusr(%s);", (user,))
     id_user = cursor.fetchone()[0]
