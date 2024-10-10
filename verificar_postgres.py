@@ -402,8 +402,76 @@ def eliminar_documento():
     button_cancelar = tk.Button(ventana_eliminar, text="Cancelar", command=ventana_eliminar.destroy)
     button_cancelar.pack(pady=5)
 
+# Función para mover archivo
 def mover_documento():
-    messagebox.showinfo("Función", "El documento ha sido movido.")
+    ventana_mover = tk.Toplevel()
+    ventana_mover.title("Mover Archivo")
+    ventana_mover.geometry("400x300")
+
+    conexion = conectar_base_datos()
+    cursor = conexion.cursor()
+    cursor.execute("SELECT get_idusr(%s);", (user,))
+    id_user = cursor.fetchone()[0]
+    cursor.execute("SELECT achv_user(%s)", (id_user,))
+    archivos_propios = [("Propio: " + fila[0]) for fila in cursor.fetchall()]
+    cursor.close()
+    conexion.close()
+
+    if not archivos_propios:
+        messagebox.showerror("Error", "No hay archivos disponibles para mover.")
+        ventana_mover.destroy()
+        return
+    # Crear la interfaz para seleccionar el archivo a mover
+    label_archivo = tk.Label(ventana_mover, text="Selecciona el archivo a mover:")
+    label_archivo.pack(pady=5)
+    variable_archivo = tk.StringVar(ventana_mover)
+    variable_archivo.set(archivos_propios[0])  # Establecer valor inicial
+    menu_archivo = tk.OptionMenu(ventana_mover, variable_archivo, *archivos_propios)
+    menu_archivo.pack(pady=5)
+    
+    def seleccionar_carpeta_destino():
+        ruta_carpeta = filedialog.askdirectory()
+        if ruta_carpeta:
+            entry_carpeta.delete(0, tk.END)
+            entry_carpeta.insert(0, ruta_carpeta)
+
+    label_carpeta_destino = tk.Label(ventana_mover, text="Seleccionar carpeta de destino:")
+    label_carpeta_destino.pack(pady=5)
+    entry_carpeta = tk.Entry(ventana_mover, width=30)
+    entry_carpeta.pack(pady=5)
+    button_seleccionar_carpeta = tk.Button(ventana_mover, text="Seleccionar Carpeta", command=seleccionar_carpeta_destino)
+    button_seleccionar_carpeta.pack(pady=5)
+
+    def confirmar_mover():
+        nom_achv = variable_archivo.get().split(": ", 1)[1]
+        ruta_nueva_carpeta = entry_carpeta.get()
+
+        if not ruta_nueva_carpeta:
+            messagebox.showerror("Error", "Debe seleccionar una carpeta de destino.")
+            return
+        try:
+            conexion = conectar_base_datos()
+            cursor = conexion.cursor()
+            cursor.execute("SELECT Druta_achv(%s);", (nom_achv,))
+            ruta_actual = cursor.fetchone()[0]
+
+            nueva_ruta = os.path.join(ruta_nueva_carpeta, os.path.basename(ruta_actual))
+            shutil.move(ruta_actual, nueva_ruta)
+            
+            cursor.execute("SELECT act_rutAchv(%s,%s,%s);", (nueva_ruta, nom_achv, id_user))
+            conexion.commit()
+            messagebox.showinfo("Éxito", f"El archivo '{nom_achv}' ha sido movido correctamente a '{ruta_nueva_carpeta}'.")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo mover el archivo. Error: {e}")
+        finally:
+            ventana_mover.destroy()
+            cursor.close()
+            conexion.close()
+
+    button_confirmar = tk.Button(ventana_mover, text="Mover Archivo", command=confirmar_mover)
+    button_confirmar.pack(pady=10)
+    button_cancelar = tk.Button(ventana_mover, text="Cancelar", command=ventana_mover.destroy)
+    button_cancelar.pack(pady=5)
 
 def crear_documento(id_tip, nom_tip):
     ventana_crear = tk.Toplevel()
