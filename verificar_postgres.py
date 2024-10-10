@@ -1,8 +1,11 @@
 import psycopg2
 from psycopg2 import OperationalError
 import tkinter as tk
-from tkinter import simpledialog, messagebox
+from tkinter import simpledialog, messagebox, filedialog
 from datetime import datetime
+import os
+import openpyxl
+
 user = None
 password = None
 def conectar_postgres():
@@ -128,107 +131,213 @@ def conectar_base_datos():
         )
 
 def crear_documento_texto():
-    crear_doc(1,"texto")
+    crear_documento(1,".txt")
 
 def crear_documento_excel():
-    crear_doc(2,"excel")
+    crear_documento(2,".xlsx")
 
 def compartir_documento():
+    ventana_compartir = tk.Toplevel()
+    ventana_compartir.title("Compartir Documento")
+    ventana_compartir.geometry("400x300")
+
     conexion = conectar_base_datos()
     cursor = conexion.cursor()
+    
     cursor.execute("SELECT get_idusr(%s);", (user,))
     id_user = cursor.fetchone()[0]
-    try:
-        nom_achv = simpledialog.askstring("Compartir archivo", "Ingresa el nombre del archivo a compartir:")
-        if not nom_achv:
-            messagebox.showerror("Error", "El nombre del archivo es obligatorio.")
-            return
-        cursor.execute("SELECT get_achvID(%s);", (nom_achv,))
-        id_achv = cursor.fetchone()[0]
-        if not id_achv:
-            messagebox.showerror("Error", "El archivo no existe.")
-            cursor.close()
-            conexion.close()
-            return
+    
+    cursor.execute("SELECT listar_usrs(%s)", (id_user,))
+    lista_usuarios = [fila[0] for fila in cursor.fetchall()]
+    cursor.execute("SELECT achv_user(%s)",(user,))
+    lista_documentos = [fila[0] for fila in cursor.fetchall()]
+    cursor.close()
+    conexion.close()
 
-        nom_user_comp = simpledialog.askstring("Compartir con usuario", "Ingresa el nombre del usuario:")
-        if not nom_user_comp:
-            messagebox.showerror("Error", "El nombre del usuario es obligatorio.")
-            return
-        cursor.execute("SELECT get_idusr(%s);", (nom_user_comp,))
-        id_user_comp = cursor.fetchone()[0]
-        if not id_user_comp:
-            messagebox.showerror("Error", "El usuario no existe.")
-            cursor.close()
-            conexion.close()
-            return
+    if not lista_usuarios or not lista_documentos:
+        messagebox.showerror("Error", "No hay usuarios disponibles para compartir.")
+        ventana_compartir.destroy()
+        return
+    
+    if not lista_documentos:
+        messagebox.showerror("Error", "No hay documentos disponibles para compartir.")
+        ventana_compartir.destroy()
+        return
 
-        fecha_exp = simpledialog.askstring("Fecha de expiración", "Ingresa la fecha de expiración (YYYY-MM-DD):")
-        try:
-            fecha_exp = datetime.strptime(fecha_exp, '%Y-%m-%d').date()
+    label_documento = tk.Label(ventana_compartir, text="Selecciona el archivo a compartir:")
+    label_documento.pack(pady=5)
+    variable_documento = tk.StringVar(ventana_compartir)
+    variable_documento.set(lista_documentos[0])
+    menu_documento = tk.OptionMenu(ventana_compartir, variable_documento, *lista_documentos)
+    menu_documento.pack(pady=5)
+
+    label_usuario = tk.Label(ventana_compartir, text="Selecciona el usuario:")
+    label_usuario.pack(pady=5)
+    variable_usuario = tk.StringVar(ventana_compartir)
+    variable_usuario.set(lista_usuarios[0])
+    menu_usuario = tk.OptionMenu(ventana_compartir, variable_usuario, *lista_usuarios)
+    menu_usuario.pack(pady=5)
+
+    label_fecha = tk.Label(ventana_compartir, text="Fecha de expiración (YYYY-MM-DD):")
+    label_fecha.pack(pady=5)
+    entry_fecha = tk.Entry(ventana_compartir)
+    entry_fecha.pack(pady=5)
+    
+    def confirmar_compartir():
+        nom_achv = variable_documento.get()
+        nom_user_comp = variable_usuario.get()
+        fecha_exp = entry_fecha.get()
+        try: fecha_exp = datetime.strptime(fecha_exp, '%Y-%m-%d').date()
         except ValueError:
             messagebox.showerror("Error", "Formato de fecha incorrecto.")
             return
-        cursor.execute("SELECT insert_permisoAchv(%s,%s,%s,%s)",(id_achv, id_user, id_user_comp, fecha_exp))
-        conexion.commit()
-        cursor.close()
-        conexion.close()
+        conexion = conectar_base_datos()
+        cursor = conexion.cursor()
+        try:
+            cursor.execute("SELECT get_achvID(%s);", (nom_achv,))
+            id_achv = cursor.fetchone()[0]
+            cursor.execute("SELECT get_idusr(%s);", (nom_user_comp,))
+            id_user_comp = cursor.fetchone()[0]
 
-        messagebox.showinfo("Éxito", "El archivo ha sido compartido exitosamente.")
-    except Exception as e:
-        messagebox.showerror("Error", f"No se pudo compartir el archivo. Error: {e}")
-
-def eliminar_documento():
-    conexion = conectar_base_datos()
-    cursor = conexion.cursor()
-    try:
-        nom_achv = simpledialog.askstring("Eliminar archivo", "Ingresa el nombre del archivo a eliminar:")
-        if not nom_achv:
-            messagebox.showerror("Error", "El nombre del archivo es obligatorio.")
-            return
-
-        cursor.execute("SELECT get_achvID(%s);", (nom_achv,))
-        id_achv = cursor.fetchone()[0]
-        if not id_achv:
-            messagebox.showerror("Error", "El archivo no existe.")
+            # Insertar el permiso para compartir
+            cursor.execute("SELECT insert_permisoAchv(%s,%s,%s,%s)", (id_achv, id_user, id_user_comp, fecha_exp))
+            conexion.commit()
+            messagebox.showinfo("Éxito", "El archivo ha sido compartido exitosamente.")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo compartir el archivo. Error: {e}")
+        finally:
             cursor.close()
             conexion.close()
-            return
-        cursor.execute("SELECT delete_achvID(%s);", (nom_achv,))
-        conexion.commit()
-        cursor.close()
-        conexion.close()
 
-        messagebox.showinfo("Éxito", "El archivo ha sido eliminado exitosamente.")
-    except Exception as e:
-        messagebox.showerror("Error", f"No se pudo eliminar el archivo. Error: {e}")
+    button_confirmar = tk.Button(ventana_compartir, text="Compartir", command=confirmar_compartir)
+    button_confirmar.pack(pady=10)
+
+    button_cancelar = tk.Button(ventana_compartir, text="Cancelar", command=ventana_compartir.destroy)
+    button_cancelar.pack(pady=5)
+
+def eliminar_documento():
+    ventana_eliminar = tk.Toplevel()
+    ventana_eliminar.title("Eliminar Documento")
+    ventana_eliminar.geometry("400x300")
+    conexion = conectar_base_datos()
+    cursor = conexion.cursor()
+    
+    cursor.execute("SELECT get_idusr(%s);", (user,))
+    id_user = cursor.fetchone()[0]
+
+    cursor.execute("SELECT achv_user(%s)",(id_user,))
+    archivos_propios = [("Propio: " + fila[0]) for fila in cursor.fetchall()]
+
+    cursor.execute("SELECT achv_user_comp(%s)",(id_user,))
+    archivos_compartidos = [("Compartido: " + fila[0]) for fila in cursor.fetchall()]
+
+    lista_documentos = archivos_propios + archivos_compartidos
+
+    cursor.close()
+    conexion.close()
+
+    if not lista_documentos:
+        messagebox.showerror("Error", "No hay documentos disponibles para eliminar.")
+        ventana_eliminar.destroy()
+        return
+
+    label_documento = tk.Label(ventana_eliminar, text="Selecciona el archivo a eliminar:")
+    label_documento.pack(pady=5)
+    variable_documento = tk.StringVar(ventana_eliminar)
+    variable_documento.set(lista_documentos[0])  # Establecer valor inicial
+    menu_documento = tk.OptionMenu(ventana_eliminar, variable_documento, *lista_documentos)
+    menu_documento.pack(pady=5)
+
+    def confirmar_eliminar():
+        nom_achv = variable_documento.get()
+
+        # Extraer solo el nombre del archivo (quitando el prefijo "Propio:" o "Compartido:")
+        nom_achv = nom_achv.split(": ", 1)[1]
+        try:
+            conexion = conectar_base_datos()
+            cursor = conexion.cursor()
+            cursor.execute("SELECT delete_achvID(%s);", (nom_achv,))
+            conexion.commit()
+            messagebox.showinfo("Éxito", "El archivo ha sido eliminado exitosamente.")
+        except Exception as e: messagebox.showerror("Error", f"No se pudo eliminar el archivo. Error: {e}")
+        finally:
+            cursor.close()
+            conexion.close()
+
+    button_confirmar = tk.Button(ventana_eliminar, text="Eliminar", command=confirmar_eliminar)
+    button_confirmar.pack(pady=10)
+    button_cancelar = tk.Button(ventana_eliminar, text="Cancelar", command=ventana_eliminar.destroy)
+    button_cancelar.pack(pady=5)
 
 def mover_documento():
     messagebox.showinfo("Función", "El documento ha sido movido.")
 
-def crear_doc(id_tip, nom_tip):
-    conexion = conectar_base_datos()
-    cursor = conexion.cursor()
-    cursor.execute("SELECT get_idusr(%s);", (user,))
-    id_user = cursor.fetchone()[0]
-    try:
-        nom_achv = simpledialog.askstring("Nombre del archivo", f"Ingresa el nombre del archivo ({nom_tip}):")
-        if not nom_achv:
+def crear_documento(id_tip, nom_tip):
+    ventana_crear = tk.Toplevel()
+    ventana_crear.title("Crear Documento")
+    ventana_crear.geometry("400x300")
+
+    label_nombre = tk.Label(ventana_crear, text="Nombre del archivo:")
+    label_nombre.pack(pady=5)
+    entry_nombre = tk.Entry(ventana_crear, width=30)
+    entry_nombre.pack(pady=5)
+
+    def seleccionar_carpeta():
+        ruta_carpeta = filedialog.askdirectory()
+        if ruta_carpeta:
+            entry_carpeta.delete(0, tk.END)
+            entry_carpeta.insert(0, ruta_carpeta)
+
+    label_carpeta = tk.Label(ventana_crear, text="Seleccionar carpeta de destino:")
+    label_carpeta.pack(pady=5)
+    entry_carpeta = tk.Entry(ventana_crear, width=30)
+    entry_carpeta.pack(pady=5)
+
+    button_seleccionar_carpeta = tk.Button(ventana_crear, text="Seleccionar Carpeta", command=seleccionar_carpeta)
+    button_seleccionar_carpeta.pack(pady=5)
+    
+    def confirmar_crear():
+        nombre_archivo = entry_nombre.get()
+        ruta_carpeta = entry_carpeta.get()
+        nombre_carpeta = os.path.basename(ruta_carpeta)
+        if not nombre_archivo:
             messagebox.showerror("Error", "El nombre del archivo es obligatorio.")
             return
-
-        ruta_achv = simpledialog.askstring("Ruta del archivo", "Ingresa la ruta donde se guardará el archivo:")
-        if not ruta_achv:
-            messagebox.showerror("Error", "La ruta del archivo es obligatoria.")
+        if not ruta_carpeta:
+            messagebox.showerror("Error", "La ruta de la carpeta es obligatoria.")
             return
+        ruta_archivo = os.path.join(ruta_carpeta, nombre_archivo + nom_tip)
+        try:
+            conexion = conectar_base_datos()
+            cursor = conexion.cursor()
+            cursor.execute("SELECT id_carpet_forRuta(%s)", (ruta_carpeta,))
+            resultado = cursor.fetchone()
+            if resultado:
+                id_carpeta = resultado[0]
+            else:
+                cursor.execute("SELECT get_idusr(%s);", (user,))
+                id_user = cursor.fetchone()[0]
+                cursor.execute("SELECT insert_carpet(%s, %s,%s)", (id_user, nombre_carpeta, ruta_carpeta,))
+                conexion.commit()
+            cursor.execute("SELECT insert_achv(%s,%s,%s,%s);", (id_user, id_tip, nombre_archivo, ruta_archivo))
+            conexion.commit()
+            if(id_tip == 1):
+                with open(ruta_archivo, 'w') as archivo:
+                    archivo.write('')
+            elif id_tip == 2:
+                workbook = openpyxl.Workbook()
+                workbook.save(ruta_archivo)
+                
+            messagebox.showinfo("Éxito", f"Se ha creado el archivo '{nombre_archivo}' en la carpeta '{ruta_carpeta}'.")
+        except Exception as e: messagebox.showerror("Error", f"No se pudo crear el archivo. Error: {e}")
+        finally:
+            cursor.close()
+            conexion.close()
 
-        cursor.execute("SELECT insert_achv(%s,%s,%s,%s)", (id_user, id_tip, nom_achv, ruta_achv))
-        conexion.commit()
-        cursor.close()
-        conexion.close()
-        messagebox.showinfo("Éxito", f"Se ha creado un nuevo documento de {nom_tip}.")
-    except Exception as e:
-        messagebox.showerror("Error", f"No se pudo crear el documento. Error: {e}")
+    button_confirmar = tk.Button(ventana_crear, text="Crear Archivo", command=confirmar_crear)
+    button_confirmar.pack(pady=10)
+    button_cancelar = tk.Button(ventana_crear, text="Cancelar", command=ventana_crear.destroy)
+    button_cancelar.pack(pady=5)
 
 # Configuración de la ventana principal (Login)
 root = tk.Tk()
