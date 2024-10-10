@@ -6,6 +6,7 @@ from datetime import datetime
 import os
 import openpyxl
 import pandas as pd
+import shutil
 
 user = None
 password = None
@@ -68,7 +69,9 @@ def abrir_gestor_archivos(rol_usuario):
         "CrearDocumentoExcel": crear_documento_excel,
         "CompartirDocumento": compartir_documento,
         "EliminarDocumento": eliminar_documento,
-        "MoverDocumento": mover_documento
+        "MoverDocumento": mover_documento,
+        "CrearCarpeta": crear_carpeta,
+        "EliminarCarpeta": eliminar_carpeta
     }
 
     # Crear la barra de menús
@@ -137,6 +140,67 @@ def crear_documento_texto():
 def crear_documento_excel():
     crear_documento(2,".xlsx")
 
+def crear_carpeta():
+    ventana_crear = tk.Toplevel()
+    ventana_crear.title("Crear Carpeta")
+    ventana_crear.geometry("400x300")
+
+    label_nombre = tk.Label(ventana_crear, text="Nombre de la carpeta:")
+    label_nombre.pack(pady=5)
+    entry_nombre = tk.Entry(ventana_crear, width=30)
+    entry_nombre.pack(pady=5)
+
+    def seleccionar_carpeta():
+        ruta_carpeta = filedialog.askdirectory()
+        if ruta_carpeta:
+            entry_carpeta.delete(0, tk.END)
+            entry_carpeta.insert(0, ruta_carpeta)
+            
+    label_carpeta = tk.Label(ventana_crear, text="Seleccionar carpeta de destino:")
+    label_carpeta.pack(pady=5)
+    entry_carpeta = tk.Entry(ventana_crear, width=30)
+    entry_carpeta.pack(pady=5)
+    button_seleccionar_carpeta = tk.Button(ventana_crear, text="Seleccionar Carpeta", command=seleccionar_carpeta)
+    button_seleccionar_carpeta.pack(pady=5)
+
+    def confirmar_crear():
+        nombre_carpeta = entry_nombre.get()
+        ruta_carpeta = entry_carpeta.get()
+        if not nombre_carpeta:
+            messagebox.showerror("Error", "El nombre de la carpeta es obligatorio.")
+            return
+        if not ruta_carpeta:
+            messagebox.showerror("Error", "La ruta de la carpeta es obligatoria.")
+            return
+        
+        ruta_completa = os.path.join(ruta_carpeta, nombre_carpeta)
+        try:
+            if not os.path.exists(ruta_completa):
+                os.makedirs(ruta_completa)
+            else:
+                messagebox.showwarning("Advertencia", "La carpeta ya existe en el sistema de archivos.")
+                return
+            
+            conexion = conectar_base_datos()
+            cursor = conexion.cursor()
+            cursor.execute("SELECT get_idusr(%s);", (user,))
+            id_user = cursor.fetchone()[0]
+            cursor.execute("SELECT insert_carpet(%s,%s,%s);", (id_user, nombre_carpeta, ruta_completa))
+            conexion.commit()
+
+            messagebox.showinfo("Éxito", f"Se ha creado la carpeta '{nombre_carpeta}' en la ruta '{ruta_carpeta}'.")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo crear la carpeta. Error: {e}")
+        finally:
+            cursor.close()
+            conexion.close()
+            ventana_crear.destroy()
+            
+    button_confirmar = tk.Button(ventana_crear, text="Crear Carpeta", command=confirmar_crear)
+    button_confirmar.pack(pady=10)
+    button_cancelar = tk.Button(ventana_crear, text="Cancelar", command=ventana_crear.destroy)
+    button_cancelar.pack(pady=5)
+
 def compartir_documento():
     ventana_compartir = tk.Toplevel()
     ventana_compartir.title("Compartir Documento")
@@ -144,13 +208,13 @@ def compartir_documento():
 
     conexion = conectar_base_datos()
     cursor = conexion.cursor()
-
+    
     cursor.execute("SELECT get_idusr(%s);", (user,))
     id_user = cursor.fetchone()[0]
-
+    
     cursor.execute("SELECT listar_usrs(%s)", (id_user,))
     lista_usuarios = [fila[0] for fila in cursor.fetchall()]
-    cursor.execute("SELECT achv_user(%s)",(id_user,))
+    cursor.execute("SELECT achv_user(%s)",(user,))
     lista_documentos = [fila[0] for fila in cursor.fetchall()]
     cursor.close()
     conexion.close()
@@ -159,7 +223,7 @@ def compartir_documento():
         messagebox.showerror("Error", "No hay usuarios disponibles para compartir.")
         ventana_compartir.destroy()
         return
-
+    
     if not lista_documentos:
         messagebox.showerror("Error", "No hay documentos disponibles para compartir.")
         ventana_compartir.destroy()
@@ -183,7 +247,7 @@ def compartir_documento():
     label_fecha.pack(pady=5)
     entry_fecha = tk.Entry(ventana_compartir)
     entry_fecha.pack(pady=5)
-
+    
     def confirmar_compartir():
         nom_achv = variable_documento.get()
         nom_user_comp = variable_usuario.get()
@@ -200,22 +264,94 @@ def compartir_documento():
             cursor.execute("SELECT get_idusr(%s);", (nom_user_comp,))
             id_user_comp = cursor.fetchone()[0]
 
-            # Insertar el permiso para compartir
             cursor.execute("SELECT insert_permisoAchv(%s,%s,%s,%s)", (id_achv, id_user, id_user_comp, fecha_exp))
             conexion.commit()
             messagebox.showinfo("Éxito", "El archivo ha sido compartido exitosamente.")
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo compartir el archivo. Error: {e}")
         finally:
-            ventana_compartir.destroy()
             cursor.close()
             conexion.close()
+            ventana_compartir.destroy()
 
     button_confirmar = tk.Button(ventana_compartir, text="Compartir", command=confirmar_compartir)
     button_confirmar.pack(pady=10)
-
     button_cancelar = tk.Button(ventana_compartir, text="Cancelar", command=ventana_compartir.destroy)
     button_cancelar.pack(pady=5)
+
+def eliminar_carpeta():
+    ventana_eliminar = tk.Toplevel()
+    ventana_eliminar.title("Eliminar Carpeta")
+    ventana_eliminar.geometry("400x300")
+    
+    conexion = conectar_base_datos()
+    cursor = conexion.cursor()
+    cursor.execute("SELECT get_idusr(%s);", (user,))
+    id_user = cursor.fetchone()[0]
+    cursor.execute("SELECT cpt_user(%s);", (id_user,))
+    carpetas_propias = [("Carpeta: " + fila[0]) for fila in cursor.fetchall()]
+
+    cursor.close()
+    conexion.close()
+
+    if not carpetas_propias:
+        messagebox.showerror("Error", "No hay carpetas disponibles para eliminar.")
+        ventana_eliminar.destroy()
+        return
+
+    label_carpeta = tk.Label(ventana_eliminar, text="Selecciona la carpeta a eliminar:")
+    label_carpeta.pack(pady=5)
+    variable_carpeta = tk.StringVar(ventana_eliminar)
+    variable_carpeta.set(carpetas_propias[0])
+    menu_carpeta = tk.OptionMenu(ventana_eliminar, variable_carpeta, *carpetas_propias)
+    menu_carpeta.pack(pady=5)
+
+    def confirmar_eliminar():
+        nom_carpeta = variable_carpeta.get()
+        nom_carpeta = nom_carpeta.split(": ", 1)[1]
+        try:
+            conexion = conectar_base_datos()
+            cursor = conexion.cursor()
+            cursor.execute("SELECT Druta_cpts(%s,%s);", (nom_carpeta, id_user))
+            ruta_carpeta = cursor.fetchone()[0]
+            cursor.execute("SELECT achv_Fromcpt(%s);", (ruta_carpeta,))
+            archivos_en_carpeta = cursor.fetchall() 
+
+            # Eliminar archivos de la carpeta en el sistema y en la base de datos
+            for archivo in archivos_en_carpeta:
+                ruta_archivo = archivo[0]
+                # Eliminar el archivo del sistema de archivos
+                if os.path.exists(ruta_archivo):
+                    os.remove(ruta_archivo)
+                # Eliminar el archivo de la base de datos
+                cursor.execute("SELECT delete_achvR(%s);", (ruta_archivo,))
+            # Eliminar la carpeta del sistema de archivos
+            if os.path.exists(ruta_carpeta):
+                shutil.rmtree(ruta_carpeta)
+
+            # Eliminar la carpeta de la base de datos
+            cursor.execute("SELECT delete_cpt(%s,%s);", (nom_carpeta, id_user))
+            conexion.commit()
+
+            messagebox.showinfo("Éxito", f"La carpeta '{nom_carpeta}' y todos sus archivos han sido eliminados correctamente.")
+        
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo eliminar la carpeta. Error: {e}")
+        finally:
+            cursor.close()
+            conexion.close()
+            ventana_eliminar.destroy()
+
+    button_confirmar = tk.Button(ventana_eliminar, text="Eliminar", command=confirmar_eliminar)
+    button_confirmar.pack(pady=10)
+    button_cancelar = tk.Button(ventana_eliminar, text="Cancelar", command=ventana_eliminar.destroy)
+    button_cancelar.pack(pady=5)
+
+# Ejemplo para lanzar la ventana de eliminación de carpetas
+root = tk.Tk()
+button_abrir_ventana = tk.Button(root, text="Eliminar Carpeta", command=eliminar_carpeta)
+button_abrir_ventana.pack(pady=20)
+root.mainloop() 
 
 def eliminar_documento():
     ventana_eliminar = tk.Toplevel()
@@ -223,7 +359,7 @@ def eliminar_documento():
     ventana_eliminar.geometry("400x300")
     conexion = conectar_base_datos()
     cursor = conexion.cursor()
-
+    
     cursor.execute("SELECT get_idusr(%s);", (user,))
     id_user = cursor.fetchone()[0]
 
@@ -258,18 +394,14 @@ def eliminar_documento():
         try:
             conexion = conectar_base_datos()
             cursor = conexion.cursor()
-            cursor.execute("SELECT Druta_achv(%s);", (nom_achv,))
-            ruta_archivo = cursor.fetchone()[0]
-            if os.path.exists(ruta_archivo):
-                os.remove(ruta_archivo)
             cursor.execute("SELECT delete_achvID(%s);", (nom_achv,))
             conexion.commit()
             messagebox.showinfo("Éxito", "El archivo ha sido eliminado exitosamente.")
         except Exception as e: messagebox.showerror("Error", f"No se pudo eliminar el archivo. Error: {e}")
         finally:
-            ventana_eliminar.destroy()
             cursor.close()
             conexion.close()
+            ventana_eliminar.destroy()
 
     button_confirmar = tk.Button(ventana_eliminar, text="Eliminar", command=confirmar_eliminar)
     button_confirmar.pack(pady=10)
@@ -336,15 +468,15 @@ def crear_documento(id_tip, nom_tip):
                 workbook.save(ruta_archivo)
                 with open(ruta_archivo, 'rb') as archivo:
                     tamanio = 2000
-                    contenido_binario = archivo.read(tamanio)
+                    contenido_binario = b"".join(archivo.read(tamanio))
             cursor.execute("SELECT insert_achv_withCont(%s,%s,%s,%s,%s);", (id_user, id_tip, nombre_archivo, ruta_archivo, psycopg2.Binary(contenido_binario)))
             conexion.commit()
             messagebox.showinfo("Éxito", f"Se ha creado el archivo '{nombre_archivo}' en la carpeta '{ruta_carpeta}'.")
         except Exception as e: messagebox.showerror("Error", f"No se pudo crear el archivo. Error: {e}")
         finally:
-            ventana_crear.destroy()
             cursor.close()
             conexion.close()
+            ventana_crear.destroy()
 
     button_confirmar = tk.Button(ventana_crear, text="Crear Archivo", command=confirmar_crear)
     button_confirmar.pack(pady=10)
