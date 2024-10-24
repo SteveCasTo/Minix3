@@ -3,6 +3,9 @@ from sqlalchemy.orm import relationship, declarative_base, sessionmaker
 
 Base = declarative_base()
 
+# Crear el engine y la base de datos
+engine = create_engine('postgresql://stevecas:486579@localhost/ORMGestor')
+
 # Tabla: UI
 class UI(Base):
     __tablename__ = 'UI'
@@ -92,9 +95,6 @@ class RolesUser(Base):
     usuario = relationship('Usuario', back_populates='roles')
     rol = relationship('Rol', back_populates='usuarios')
 
-
-# Crear el engine y la base de datos
-engine = create_engine('postgresql://stevecas:486579@localhost/ORMGestor')
 
 # Crear todas las tablas
 Base.metadata.create_all(engine)
