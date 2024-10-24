@@ -102,7 +102,7 @@ class RolesUser(Base):
 Session = sessionmaker(bind=engine)
 session = Session()
 
-if name == '__main__':
+if __name__ == '__main__':
     # Eliminar todas las tablas
     Base.metadata.drop_all(engine)
     
@@ -129,9 +129,9 @@ if name == '__main__':
         print(user)
         
     # Consulta específica
-    #users = session.query(Usuario).filter(
-    #    User.id == 2
-    #)
+    users = session.query(Usuario).filter(
+        Usuario.id_usuario == 2
+    )
     # users es una lista
-    #for user in users:
-    #    print(user)
+    for user in users:
+        print(user)
