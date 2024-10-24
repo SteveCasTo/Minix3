@@ -37,6 +37,9 @@ class Usuario(Base):
     roles = relationship('RolesUser', back_populates='usuario')
     sesiones = relationship('Sesion', back_populates='usuario')
 
+    def __str__(self):
+        return self.nombre_usuario + " , " + self.contrasena
+
 # Tabla: Rol
 class Rol(Base):
     __tablename__ = 'Rol'
@@ -95,10 +98,40 @@ class RolesUser(Base):
     usuario = relationship('Usuario', back_populates='roles')
     rol = relationship('Rol', back_populates='usuarios')
 
-
-# Crear todas las tablas
-Base.metadata.create_all(engine)
-
 # Crear una sesión
 Session = sessionmaker(bind=engine)
 session = Session()
+
+if name == '__main__':
+    # Eliminar todas las tablas
+    Base.metadata.drop_all(engine)
+    
+    # Crear todas las tablas
+    Base.metadata.create_all(engine)
+    
+    # Crear usuarios nuevos
+    user1 = Usuario(nombre_usuario="jose", contrasena=123456789, active=True)
+    user2 = Usuario(nombre_usuario="laura", contrasena=987654321, active=True)
+    user3 = Usuario(nombre_usuario="andre", contrasena=246813579, active=True)
+
+    # Añadir cambios en nuestro stack 
+    session.add(user1)
+    session.add(user2)
+    session.add(user3)
+    
+    # Persistir cambios en la base de datos
+    session.commit()
+
+    # Consulta generica
+    users = session.query(Usuario).all()
+    # users es una lista
+    for user in users:
+        print(user)
+        
+    # Consulta específica
+    #users = session.query(Usuario).filter(
+    #    User.id == 2
+    #)
+    # users es una lista
+    #for user in users:
+    #    print(user)
