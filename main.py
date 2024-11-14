@@ -1,8 +1,9 @@
 import tkinter as tk
 from tkinter import messagebox
-from functions import obtener_funciones_por_rol, autenticar_usuario
+from functions import *
 from sqlalchemy.orm import sessionmaker
 from models import engine
+from datetime import datetime
 
 # Crear sesión de SQLAlchemy
 Session = sessionmaker(bind=engine)
@@ -15,8 +16,77 @@ def crear_documento_texto():
 def crear_documento_excel():
     messagebox.showinfo("Función", "Crear Documento de Excel")
 
-def compartir_documento():
-    messagebox.showinfo("Función", "Compartir Documento")
+def compartir_documento(user):
+    ventana_compartir = tk.Toplevel()
+    ventana_compartir.title("Compartir Documento")
+    ventana_compartir.geometry("400x300")
+
+    id_user = obtener_id_usuario(session, user)
+    if not id_user:
+        messagebox.showerror("Error", "Usuario no encontrado.")
+        ventana_compartir.destroy()
+        return
+
+    lista_usuarios = listar_usuarios(session, id_user)
+    lista_documentos = listar_documentos_usuario(session, id_user)
+    
+    if not lista_usuarios or not lista_documentos:
+        messagebox.showerror("Error", "No hay usuarios o documentos disponibles para compartir.")
+        ventana_compartir.destroy()
+        return
+
+    lista_nombres_usuarios = [usuario.nombre for usuario in lista_usuarios]
+    lista_nombres_documentos = [documento.nombre for documento in lista_documentos]
+
+    label_documento = tk.Label(ventana_compartir, text="Selecciona el archivo a compartir:")
+    label_documento.pack(pady=5)
+    variable_documento = tk.StringVar(ventana_compartir)
+    variable_documento.set(lista_nombres_documentos[0])
+    menu_documento = tk.OptionMenu(ventana_compartir, variable_documento, *lista_nombres_documentos)
+    menu_documento.pack(pady=5)
+
+    label_usuario = tk.Label(ventana_compartir, text="Selecciona el usuario:")
+    label_usuario.pack(pady=5)
+    variable_usuario = tk.StringVar(ventana_compartir)
+    variable_usuario.set(lista_nombres_usuarios[0])
+    menu_usuario = tk.OptionMenu(ventana_compartir, variable_usuario, *lista_nombres_usuarios)
+    menu_usuario.pack(pady=5)
+
+    label_fecha = tk.Label(ventana_compartir, text="Fecha de expiración (YYYY-MM-DD):")
+    label_fecha.pack(pady=5)
+    entry_fecha = tk.Entry(ventana_compartir)
+    entry_fecha.pack(pady=5)
+
+    def confirmar_compartir():
+        nom_achv = variable_documento.get()
+        nom_user_comp = variable_usuario.get()
+        fecha_exp = entry_fecha.get()
+        
+        try:
+            fecha_exp = datetime.strptime(fecha_exp, '%Y-%m-%d').date()
+        except ValueError:
+            messagebox.showerror("Error", "Formato de fecha incorrecto.")
+            return
+
+        try:
+            id_achv = obtener_id_documento(session, nom_achv)
+            id_user_comp = obtener_id_usuario(session, nom_user_comp)
+
+            if not id_achv or not id_user_comp:
+                messagebox.showerror("Error", "No se pudo encontrar el archivo o el usuario especificado.")
+                return
+
+            compartir_archivo(session, id_achv, id_user, id_user_comp, fecha_exp)
+            messagebox.showinfo("Éxito", "El archivo ha sido compartido exitosamente.")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo compartir el archivo. Error: {e}")
+        finally:
+            ventana_compartir.destroy()
+
+    button_confirmar = tk.Button(ventana_compartir, text="Compartir", command=confirmar_compartir)
+    button_confirmar.pack(pady=10)
+    button_cancelar = tk.Button(ventana_compartir, text="Cancelar", command=ventana_compartir.destroy)
+    button_cancelar.pack(pady=5)
 
 def eliminar_documento():
     messagebox.showinfo("Función", "Eliminar Documento")
@@ -48,7 +118,7 @@ def abrir_gestor_archivos(rol_usuario):
     root_gestor.geometry("400x400")
 
     # Obtener las funciones disponibles según el rol
-    funciones_db = obtener_funciones_por_rol(session, rol_usuario)
+    funciones_db = obtener_funciones_rol(session, rol_usuario)
 
     # Crear botones de función en el centro de la ventana
     for funcion in funciones_db:
@@ -92,7 +162,7 @@ entry_password = tk.Entry(root, show="*", width=20)
 entry_password.pack()
 
 # Botón para iniciar sesión
-button_login = tk.Button(root, text="Iniciar Sesión", command=iniciar_sesion)
+button_login = tk.Button(root, text="Iniciar Sesión", command=autenticar)
 button_login.pack(pady=10)
 
 # Botón para salir
