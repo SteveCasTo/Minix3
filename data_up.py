@@ -1,80 +1,102 @@
-Exception in Tkinter callback
-Traceback (most recent call last):
-  File "/usr/lib/python3/dist-packages/sqlalchemy/sql/coercions.py", line 530, in _literal_coercion
-    return expr._bind_param(operator, element, type_=bindparam_type)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/sqlalchemy/sql/elements.py", line 4734, in _bind_param
-    return BindParameter(
-           ^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/sqlalchemy/sql/elements.py", line 1565, in __init__
-    self.type = _compared_to_type.coerce_compared_value(
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/sqlalchemy/sql/type_api.py", line 791, in coerce_compared_value
-    _coerced_type = _resolve_value_to_type(value)
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/sqlalchemy/sql/sqltypes.py", line 3362, in _resolve_value_to_type
-    raise exc.ArgumentError(
-sqlalchemy.exc.ArgumentError: Object <models.Usuario object at 0x7bbc0cef7a40> is not legal as a SQL literal value
+def crear_documento_texto():
+    crear_documento(1, ".txt")
 
-The above exception was the direct cause of the following exception:
+def crear_documento_excel():
+    crear_documento(2, ".xlsx")
 
-Traceback (most recent call last):
-  File "/usr/lib/python3.12/tkinter/__init__.py", line 1967, in __call__
-    return self.func(*args)
-           ^^^^^^^^^^^^^^^^
-  File "/home/steve/orm_sql_alchemy.py", line 143, in autenticar
-    abrir_gestor_archivos(rol_usuario)
-  File "/home/steve/orm_sql_alchemy.py", line 121, in abrir_gestor_archivos
-    funciones_db = obtener_funciones_rol(session, rol_usuario)
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/steve/functions.py", line 40, in obtener_funciones_rol
-    funciones = session.query(Funcion).join(FuncionesRol).filter(FuncionesRol.id_rol == id_rol).all()
-                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/sqlalchemy/sql/operators.py", line 387, in __eq__
-    return self.operate(eq, other)
-           ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/sqlalchemy/orm/attributes.py", line 322, in operate
-    return op(self.comparator, *other, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/sqlalchemy/sql/operators.py", line 387, in __eq__
-    return self.operate(eq, other)
-           ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/sqlalchemy/orm/properties.py", line 426, in operate
-    return op(self.__clause_element__(), *other, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/sqlalchemy/sql/annotation.py", line 225, in __eq__
-    return self.__element.__class__.__eq__(self, other)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/sqlalchemy/sql/operators.py", line 387, in __eq__
-    return self.operate(eq, other)
-           ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/sqlalchemy/sql/elements.py", line 873, in operate
-    return op(self.comparator, *other, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/sqlalchemy/sql/operators.py", line 387, in __eq__
-    return self.operate(eq, other)
-           ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/sqlalchemy/sql/type_api.py", line 77, in operate
-    return o[0](self.expr, op, *(other + o[1:]), **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/sqlalchemy/sql/default_comparator.py", line 101, in _boolean_compare
-    obj = coercions.expect(
-          ^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/sqlalchemy/sql/coercions.py", line 193, in expect
-    resolved = impl._literal_coercion(
-               ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/sqlalchemy/sql/coercions.py", line 532, in _literal_coercion
-    self._raise_for_expected(element, err=err)
-  File "/usr/lib/python3/dist-packages/sqlalchemy/sql/coercions.py", line 517, in _raise_for_expected
-    return super(ExpressionElementImpl, self)._raise_for_expected(
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/sqlalchemy/sql/coercions.py", line 290, in _raise_for_expected
-    util.raise_(exc.ArgumentError(msg, code=code), replace_context=err)
-  File "/usr/lib/python3/dist-packages/sqlalchemy/util/compat.py", line 211, in raise_
-    raise exception
-sqlalchemy.exc.ArgumentError: SQL expression element or literal value expected, got <models.Usuario object at 0x7bbc0cef7a40>.
-^CTraceback (most recent call last):
-  File "/home/steve/orm_sql_alchemy.py", line 173, in <module>
-    root.mainloop()
-  File "/usr/lib/python3.12/tkinter/__init__.py", line 1504, in mainloop
-    self.tk.mainloop(n)
+def crear_documento(id_tip, nom_tip):
+    ventana_crear = tk.Toplevel()
+    ventana_crear.title("Crear Documento")
+    ventana_crear.geometry("400x300")
+
+    label_nombre = tk.Label(ventana_crear, text="Nombre del archivo:")
+    label_nombre.pack(pady=5)
+    entry_nombre = tk.Entry(ventana_crear, width=30)
+    entry_nombre.pack(pady=5)
+
+    def seleccionar_carpeta():
+        ruta_carpeta = filedialog.askdirectory()
+        if ruta_carpeta:
+            entry_carpeta.delete(0, tk.END)
+            entry_carpeta.insert(0, ruta_carpeta)
+
+    label_carpeta = tk.Label(ventana_crear, text="Seleccionar carpeta de destino:")
+    label_carpeta.pack(pady=5)
+    entry_carpeta = tk.Entry(ventana_crear, width=30)
+    entry_carpeta.pack(pady=5)
+
+    button_seleccionar_carpeta = tk.Button(ventana_crear, text="Seleccionar Carpeta", command=seleccionar_carpeta)
+    button_seleccionar_carpeta.pack(pady=5)
+
+    def confirmar_crear():
+        nombre_archivo = entry_nombre.get()
+        ruta_carpeta = entry_carpeta.get()
+        nombre_carpeta = os.path.basename(ruta_carpeta)
+        
+        if not nombre_archivo:
+            messagebox.showerror("Error", "El nombre del archivo es obligatorio.")
+            return
+        if not ruta_carpeta:
+            messagebox.showerror("Error", "La ruta de la carpeta es obligatoria.")
+            return
+
+        ruta_archivo = os.path.join(ruta_carpeta, nombre_archivo + nom_tip)
+        
+        # Crear contenido simulado como bytes vacíos (no se crea el archivo real)
+        contenido_binario = b''
+
+        with Session() as session:
+            try:
+                # Obtener el ID del usuario actual
+                id_user = obtener_id_usuario(session, user)
+                
+                # Obtener o crear la carpeta en la base de datos
+                id_carpeta = obtener_id_carpeta(session, ruta_carpeta, nombre_carpeta, id_user)
+                
+                # Insertar el archivo en la base de datos
+                insertar_archivo(session, id_user, id_tip, nombre_archivo, ruta_archivo, datetime.now(), contenido_binario)
+                
+                messagebox.showinfo("Éxito", f"Se ha creado el archivo '{nombre_archivo}' en la carpeta '{ruta_carpeta}'.")
+
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo crear el archivo. Error: {e}")
+
+            finally:
+                ventana_crear.destroy()
+
+    button_confirmar = tk.Button(ventana_crear, text="Crear Archivo", command=confirmar_crear)
+    button_confirmar.pack(pady=10)
+    button_cancelar = tk.Button(ventana_crear, text="Cancelar", command=ventana_crear.destroy)
+    button_cancelar.pack(pady=5)
+
+
+
+
+
+
+def obtener_id_usuario(session: Session, nombre_usuario: str):
+    usuario = session.query(Usuario).filter_by(nombre_usuario=nombre_usuario).first()
+    return usuario.id_usuario if usuario else None
+
+def obtener_id_carpeta(session: Session, ruta_carpeta: str, nombre_carpeta: str, id_usuario: int):
+    carpeta = session.query(Carpeta).filter_by(ruta_carpeta=ruta_carpeta).first()
+    if carpeta:
+        return carpeta.id_carpeta
+    else:
+        nueva_carpeta = Carpeta(nombre_carpeta=nombre_carpeta, ruta_carpeta=ruta_carpeta, id_usuario=id_usuario)
+        session.add(nueva_carpeta)
+        session.commit()
+        return nueva_carpeta.id_carpeta
+
+def insertar_archivo(session: Session, id_usuario: int, id_tipo: int, nombre_archivo: str, ruta_archivo: str, creacion_archivo, contenido_binario: bytes):
+    nuevo_archivo = Archivo(
+        id_tipo=id_tipo,
+        id_usuario=id_usuario,
+        nombre_archivo=nombre_archivo,
+        ruta_archivo=ruta_archivo,
+        creacion_archivo=creacion_archivo,
+        contenido_archivo=contenido_binario
+    )
+    session.add(nuevo_archivo)
+    session.commit()
+    return nuevo_archivo
