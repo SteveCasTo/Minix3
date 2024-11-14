@@ -43,3 +43,27 @@ def log_update(mapper, connection, target):
 @event.listens_for(Session, 'after_delete')
 def log_delete(mapper, connection, target):
     registrar_log(mapper, connection, target, "DELETE")
+
+
+# Listener para inserciones
+@event.listens_for(Archivo, 'after_insert')
+def after_insert(mapper, connection, target):
+    session = SessionLocal()
+    registrar_log(session, "INSERT", "Archivo", dato_nuevo=str(target))
+    session.close()
+
+# Listener para actualizaciones
+@event.listens_for(Archivo, 'after_update')
+def after_update(mapper, connection, target):
+    session = SessionLocal()
+    inspector = inspect(target)
+    dato_viejo = {attr.key: attr.history.deleted[0] for attr in inspector.attrs if attr.history.has_changes() and attr.history.deleted}
+    registrar_log(session, "UPDATE", "Archivo", dato_nuevo=str(target), dato_viejo=str(dato_viejo))
+    session.close()
+
+# Listener para eliminaciones
+@event.listens_for(Archivo, 'after_delete')
+def after_delete(mapper, connection, target):
+    session = SessionLocal()
+    registrar_log(session, "DELETE", "Archivo", dato_viejo=str(target))
+    session.close()
