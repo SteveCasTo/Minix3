@@ -130,34 +130,62 @@ def registrar_log(session, operation, tabla, datos_nuevos=None, datos_viejos=Non
 # Listener para inserciones
 @event.listens_for(Archivo, 'after_insert')
 def after_insert(mapper, connection, target):
-    global session
-    datos_nuevos=({f"{str(v)}, " for k,v in target.__dict__.items() if not k.startswith("_")})
-    datos_nuevos=datos_nuevos[:-3]
-    registrar_log(session, "INSERT", "Archivo", datos_nuevos)
+    session = Session(connection)
+
+    # Construir `datos_nuevos` como un diccionario serializable
+    datos_nuevos = {
+        k: serializar_valor(v)
+        for k, v in target.__dict__.items()
+        if not k.startswith("_")  # Ignorar atributos privados
+    }
+    registrar_log(session, "INSERT", target.__tablename__, datos_nuevos=datos_nuevos)
+    session.close()
+
 
 # Listener para actualizaciones
 @event.listens_for(Archivo, 'after_update')
 def after_update(mapper, connection, target):
-    global session
+    session = Session(connection)
+
+    # Obtener los valores antiguos y nuevos usando el inspector
     inspector = inspect(target)
-    dato_viejo = {attr.key: attr.history.deleted[0] for attr in inspector.attrs if attr.history.has_changes() and attr.history.deleted}
-    registrar_log(session, "UPDATE", "Archivo", datos_nuevos=str(target), datos_viejos=str(dato_viejo))
+    datos_viejos = {
+        attr.key: serializar_valor(attr.history.deleted[0])
+        for attr in inspector.attrs
+        if attr.history.has_changes() and attr.history.deleted
+    }
+    datos_nuevos = {
+        k: serializar_valor(v)
+        for k, v in target.__dict__.items()
+        if not k.startswith("_")
+    }
+    registrar_log(session, "UPDATE", target.__tablename__, datos_nuevos=datos_nuevos, datos_viejos=datos_viejos)
+    session.close()
+
 
 # Listener para eliminaciones
 @event.listens_for(Archivo, 'after_delete')
 def after_delete(mapper, connection, target):
-    global session
-    registrar_log(session, "DELETE", "Archivo", datos_viejos=str(target))
+    session = Session(connection)
+
+    # Construir `datos_viejos` como un diccionario serializable
+    datos_viejos = {
+        k: serializar_valor(v)
+        for k, v in target.__dict__.items()
+        if not k.startswith("_")  # Ignorar atributos privados
+    }
+    registrar_log(session, "DELETE", target.__tablename__, datos_viejos=datos_viejos)
+    session.close()
 
 def serializar_valor(valor):
     try:
         if isinstance(valor, set):
-            return list(valor)
+            return list(valor)  # Convertir conjuntos a listas
         elif isinstance(valor, bytes):
-            return base64.b64encode(valor).decode()
+            return base64.b64encode(valor).decode()  # Convertir bytes a Base64
         elif isinstance(valor, datetime):
-            return str(valor)
-        json.dumps(valor)
+            return valor.isoformat()  # Convertir fechas a ISO 8601
+        json.dumps(valor)  # Intentar serialización directa
         return valor
     except (TypeError, ValueError):
         return str(valor)
