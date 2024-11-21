@@ -1,69 +1,77 @@
-from sqlalchemy import event
+def eliminar_documento():
+    ventana_eliminar = tk.Toplevel()
+    ventana_eliminar.title("Eliminar Documento")
+    ventana_eliminar.geometry("400x300")
 
-def registrar_log(mapper, user, connection, target, operation):
-    fecha = datetime.utcnow().date()
-    hora = datetime.utcnow().strftime('%H:%M:%S')
-    tabla = target.__tablename__
-    
-    # Obtener datos nuevos y antiguos
-    datos_nuevos = {col.name: getattr(target, col.name) for col in target.__table__.columns}
-    datos_viejos = None
-    
-    if operation == "UPDATE":
-        state = Session.object_session(target)._get_state_attr_by_key(target)
-        datos_viejos = {k: v for k, v in state.committed_state.items() if k in datos_nuevos and datos_nuevos[k] != v}
-    
-    # Preparar datos para el log
-    log = Log(
-        fecha_log=fecha,
-        hora_log=hora,
-        operation=operation,
-        dato_nuevo=str(datos_nuevos) if datos_nuevos else None,
-        dato_viejo=str(datos_viejos) if datos_viejos else None,
-        tabla_insertada=tabla,
-        userN=user
-    )
-    
-    session = Session(bind=connection)
-    session.add(log)
-    session.commit()
+    with Session() as session:
+        try:
+            # Obtener el ID del usuario actual
+            id_user = obtener_id_usuario(session, user)
+
+            # Listar archivos propios
+            archivos_propios = listar_archivos_usuario(session, id_user)
+            lista_archivos_propios = [f"Propio: {archivo.nombre_archivo}" for archivo in archivos_propios]
+
+            # Listar archivos compartidos
+            archivos_compartidos = listar_archivos_compartidos(session, id_user)
+            lista_archivos_compartidos = [f"Compartido: {archivo.nombre_archivo}" for archivo in archivos_compartidos]
+
+            # Combinar ambas listas
+            lista_documentos = lista_archivos_propios + lista_archivos_compartidos
+
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudieron cargar los documentos. Error: {e}")
+            ventana_eliminar.destroy()
+            return
+
+    # Verificar si hay documentos disponibles
+    if not lista_documentos:
+        messagebox.showerror("Error", "No hay documentos disponibles para eliminar.")
+        ventana_eliminar.destroy()
+        return
+
+    # Crear interfaz de selección
+    label_documento = tk.Label(ventana_eliminar, text="Selecciona el archivo a eliminar:")
+    label_documento.pack(pady=5)
+    variable_documento = tk.StringVar(ventana_eliminar)
+    variable_documento.set(lista_documentos[0])  # Valor inicial
+    menu_documento = tk.OptionMenu(ventana_eliminar, variable_documento, *lista_documentos)
+    menu_documento.pack(pady=5)
+
+    def confirmar_eliminar():
+        nom_achv = variable_documento.get()
+        nom_achv = nom_achv.split(": ", 1)[1]  # Extraer nombre del archivo
+
+        with Session() as session:
+            try:
+                # Eliminar el archivo de la base de datos
+                eliminar_archivo_por_nombre(session, nom_achv)
+                messagebox.showinfo("Éxito", f"El archivo '{nom_achv}' ha sido eliminado exitosamente.")
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo eliminar el archivo. Error: {e}")
+            finally:
+                ventana_eliminar.destroy()
+
+    # Botones de confirmación y cancelación
+    button_confirmar = tk.Button(ventana_eliminar, text="Eliminar", command=confirmar_eliminar)
+    button_confirmar.pack(pady=10)
+    button_cancelar = tk.Button(ventana_eliminar, text="Cancelar", command=ventana_eliminar.destroy)
+    button_cancelar.pack(pady=5)
 
 
-# Listener para INSERT
-@event.listens_for(Session, 'after_insert')
-def log_insert(mapper, connection, target):
-    registrar_log(mapper, connection, target, "INSERT")
-
-# Listener para UPDATE
-@event.listens_for(Session, 'after_update')
-def log_update(mapper, connection, target):
-    registrar_log(mapper, connection, target, "UPDATE")
-
-# Listener para DELETE
-@event.listens_for(Session, 'after_delete')
-def log_delete(mapper, connection, target):
-    registrar_log(mapper, connection, target, "DELETE")
 
 
-# Listener para inserciones
-@event.listens_for(Archivo, 'after_insert')
-def after_insert(mapper, connection, target):
-    session = SessionLocal()
-    registrar_log(session, "INSERT", "Archivo", dato_nuevo=str(target))
-    session.close()
 
-# Listener para actualizaciones
-@event.listens_for(Archivo, 'after_update')
-def after_update(mapper, connection, target):
-    session = SessionLocal()
-    inspector = inspect(target)
-    dato_viejo = {attr.key: attr.history.deleted[0] for attr in inspector.attrs if attr.history.has_changes() and attr.history.deleted}
-    registrar_log(session, "UPDATE", "Archivo", dato_nuevo=str(target), dato_viejo=str(dato_viejo))
-    session.close()
+def listar_archivos_usuario(session, id_user):
+    return session.query(Archivo).filter_by(id_usuario=id_user).all()
 
-# Listener para eliminaciones
-@event.listens_for(Archivo, 'after_delete')
-def after_delete(mapper, connection, target):
-    session = SessionLocal()
-    registrar_log(session, "DELETE", "Archivo", dato_viejo=str(target))
-    session.close()
+def listar_archivos_compartidos(session, id_user):
+    return session.query(Archivo).join(CompartirArchivo).filter(CompartirArchivo.id_usuario_compartido == id_user).all()
+
+def eliminar_archivo_por_nombre(session, nombre_archivo):
+    archivo = session.query(Archivo).filter_by(nombre_archivo=nombre_archivo).first()
+    if archivo:
+        session.delete(archivo)
+        session.commit()
+    else:
+        raise Exception("Archivo no encontrado.")
