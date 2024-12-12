@@ -1,77 +1,82 @@
-def eliminar_documento():
-    ventana_eliminar = tk.Toplevel()
-    ventana_eliminar.title("Eliminar Documento")
-    ventana_eliminar.geometry("400x300")
+// Crear usuarios
+CREATE (u1:Usuario {nombre_usuario: "admin", contrasena: "admin123", active: true});
+CREATE (u2:Usuario {nombre_usuario: "elementosUser", contrasena: "user123", active: true});
+CREATE (u3:Usuario {nombre_usuario: "extremUser", contrasena: "extrem123", active: true});
 
-    with Session() as session:
-        try:
-            # Obtener el ID del usuario actual
-            id_user = obtener_id_usuario(session, user)
+// Crear roles
+CREATE (r1:Rol {id_rol: 1, nombre_rol: "Administrador"});
+CREATE (r2:Rol {id_rol: 2, nombre_rol: "ManipuladorElementos"});
+CREATE (r3:Rol {id_rol: 3, nombre_rol: "ManipuladorExtrem"});
 
-            # Listar archivos propios
-            archivos_propios = listar_archivos_usuario(session, id_user)
-            lista_archivos_propios = [f"Propio: {archivo.nombre_archivo}" for archivo in archivos_propios]
+// Asignar roles a usuarios
+MATCH (u1:Usuario {nombre_usuario: "admin"}), (r1:Rol {nombre_rol: "Administrador"})
+CREATE (u1)-[:TIENE_ROL]->(r1);
 
-            # Listar archivos compartidos
-            archivos_compartidos = listar_archivos_compartidos(session, id_user)
-            lista_archivos_compartidos = [f"Compartido: {archivo.nombre_archivo}" for archivo in archivos_compartidos]
+MATCH (u2:Usuario {nombre_usuario: "elementosUser"}), (r2:Rol {nombre_rol: "ManipuladorElementos"})
+CREATE (u2)-[:TIENE_ROL]->(r2);
 
-            # Combinar ambas listas
-            lista_documentos = lista_archivos_propios + lista_archivos_compartidos
+MATCH (u3:Usuario {nombre_usuario: "extremUser"}), (r3:Rol {nombre_rol: "ManipuladorExtrem"})
+CREATE (u3)-[:TIENE_ROL]->(r3);
 
-        except Exception as e:
-            messagebox.showerror("Error", f"No se pudieron cargar los documentos. Error: {e}")
-            ventana_eliminar.destroy()
-            return
+// Crear funciones
+CREATE (f1:Funcion {id_funcion: 1, nombre_funcion: "CrearArchivo"});
+CREATE (f2:Funcion {id_funcion: 2, nombre_funcion: "EliminarArchivo"});
+CREATE (f3:Funcion {id_funcion: 3, nombre_funcion: "CompartirArchivo"});
 
-    # Verificar si hay documentos disponibles
-    if not lista_documentos:
-        messagebox.showerror("Error", "No hay documentos disponibles para eliminar.")
-        ventana_eliminar.destroy()
-        return
+// Asignar funciones a roles
+MATCH (r1:Rol {nombre_rol: "Administrador"}), (f1:Funcion {nombre_funcion: "CrearArchivo"})
+CREATE (r1)-[:TIENE_FUNCION]->(f1);
 
-    # Crear interfaz de selección
-    label_documento = tk.Label(ventana_eliminar, text="Selecciona el archivo a eliminar:")
-    label_documento.pack(pady=5)
-    variable_documento = tk.StringVar(ventana_eliminar)
-    variable_documento.set(lista_documentos[0])  # Valor inicial
-    menu_documento = tk.OptionMenu(ventana_eliminar, variable_documento, *lista_documentos)
-    menu_documento.pack(pady=5)
+MATCH (r1:Rol {nombre_rol: "Administrador"}), (f2:Funcion {nombre_funcion: "EliminarArchivo"})
+CREATE (r1)-[:TIENE_FUNCION]->(f2);
 
-    def confirmar_eliminar():
-        nom_achv = variable_documento.get()
-        nom_achv = nom_achv.split(": ", 1)[1]  # Extraer nombre del archivo
+MATCH (r1:Rol {nombre_rol: "Administrador"}), (f3:Funcion {nombre_funcion: "CompartirArchivo"})
+CREATE (r1)-[:TIENE_FUNCION]->(f3);
 
-        with Session() as session:
-            try:
-                # Eliminar el archivo de la base de datos
-                eliminar_archivo_por_nombre(session, nom_achv)
-                messagebox.showinfo("Éxito", f"El archivo '{nom_achv}' ha sido eliminado exitosamente.")
-            except Exception as e:
-                messagebox.showerror("Error", f"No se pudo eliminar el archivo. Error: {e}")
-            finally:
-                ventana_eliminar.destroy()
+MATCH (r2:Rol {nombre_rol: "ManipuladorElementos"}), (f1:Funcion {nombre_funcion: "CrearArchivo"})
+CREATE (r2)-[:TIENE_FUNCION]->(f1);
 
-    # Botones de confirmación y cancelación
-    button_confirmar = tk.Button(ventana_eliminar, text="Eliminar", command=confirmar_eliminar)
-    button_confirmar.pack(pady=10)
-    button_cancelar = tk.Button(ventana_eliminar, text="Cancelar", command=ventana_eliminar.destroy)
-    button_cancelar.pack(pady=5)
+MATCH (r2:Rol {nombre_rol: "ManipuladorElementos"}), (f2:Funcion {nombre_funcion: "EliminarArchivo"})
+CREATE (r2)-[:TIENE_FUNCION]->(f2);
 
+MATCH (r3:Rol {nombre_rol: "ManipuladorExtrem"}), (f1:Funcion {nombre_funcion: "CrearArchivo"})
+CREATE (r3)-[:TIENE_FUNCION]->(f1);
 
+MATCH (r3:Rol {nombre_rol: "ManipuladorExtrem"}), (f2:Funcion {nombre_funcion: "EliminarArchivo"})
+CREATE (r3)-[:TIENE_FUNCION]->(f2);
 
+MATCH (r3:Rol {nombre_rol: "ManipuladorExtrem"}), (f3:Funcion {nombre_funcion: "CompartirArchivo"})
+CREATE (r3)-[:TIENE_FUNCION]->(f3);
 
+// Crear UIs
+CREATE (ui1:UI {id_ui: 1, url: "edicion.com"});
+CREATE (ui2:UI {id_ui: 2, url: "compartir.com"});
+CREATE (ui3:UI {id_ui: 3, url: "cambiar.com"});
 
-def listar_archivos_usuario(session, id_user):
-    return session.query(Archivo).filter_by(id_usuario=id_user).all()
+// Asignar funciones a UIs
+MATCH (ui1:UI {url: "edicion.com"}), (f1:Funcion {nombre_funcion: "CrearArchivo"})
+CREATE (ui1)-[:TIENE_FUNCION]->(f1);
 
-def listar_archivos_compartidos(session, id_user):
-    return session.query(Archivo).join(CompartirArchivo).filter(CompartirArchivo.id_usuario_compartido == id_user).all()
+MATCH (ui2:UI {url: "compartir.com"}), (f3:Funcion {nombre_funcion: "CompartirArchivo"})
+CREATE (ui2)-[:TIENE_FUNCION]->(f3);
 
-def eliminar_archivo_por_nombre(session, nombre_archivo):
-    archivo = session.query(Archivo).filter_by(nombre_archivo=nombre_archivo).first()
-    if archivo:
-        session.delete(archivo)
-        session.commit()
-    else:
-        raise Exception("Archivo no encontrado.")
+MATCH (ui3:UI {url: "cambiar.com"}), (f2:Funcion {nombre_funcion: "EliminarArchivo"})
+CREATE (ui3)-[:TIENE_FUNCION]->(f2);
+
+// Crear carpetas
+CREATE (c1:Carpeta {id_carpeta: apoc.create.uuid(), nombre_carpeta: "Carpeta1", ruta_carpeta: "/docs/", creacion_carpeta: date()});
+
+// Asignar carpetas a usuarios
+MATCH (u1:Usuario {nombre_usuario: "admin"}), (c1:Carpeta {nombre_carpeta: "Carpeta1"})
+CREATE (u1)-[:POSEE]->(c1);
+
+// Crear archivos
+CREATE (a1:Archivo {id_tipo: 1, nombre_archivo: "Archivo1", ruta_archivo: "/docs/", creacion_archivo: date(), contenido_archivo: "Contenido archivo 1"});
+CREATE (a2:Archivo {id_tipo: 2, nombre_archivo: "Archivo2", ruta_archivo: "/docs/", creacion_archivo: date(), contenido_archivo: "Contenido archivo 2"});
+
+// Asignar archivos a usuarios
+MATCH (u1:Usuario {nombre_usuario: "admin"}), (a1:Archivo {nombre_archivo: "Archivo1"})
+CREATE (u1)-[:POSEE]->(a1);
+
+MATCH (u2:Usuario {nombre_usuario: "elementosUser"}), (a2:Archivo {nombre_archivo: "Archivo2"})
+CREATE (u2)-[:POSEE]->(a2);
