@@ -1,308 +1,183 @@
-from neo4j import GraphDatabase
-import tkinter as tk
-from tkinter import ttk,messagebox
-from tkinter import messagebox, filedialog
-from datetime import datetime
-import os
-from fffu import *
+// Crear Usuarios
+CREATE (u1:Usuario {nombre_usuario: "steve", contrasena: "486579"});
+CREATE (u2:Usuario {nombre_usuario: "andre", contrasena: "135792468"});
+CREATE (u3:Usuario {nombre_usuario: "laura", contrasena: "987654321"});
 
-# Conexión a Neo4j
-class Neo4jConnection:
-    def __init__(self, uri, user, password):
-        self._driver = GraphDatabase.driver(uri, auth=(user, password))
+// Crear Roles
+CREATE (r1:Role {nombre_rol: 'Administrador', description: 'Acceso completo a todas las funciones y UIs'});
+CREATE (r2:Role {nombre_rol: 'ManipuladorElementos', description: 'Puede crear y eliminar archivos'});
+CREATE (r3:Role {nombre_rol: 'ManipuladorExtrem', description: 'Puede crear, eliminar archivos y compartir elementos'});
 
-    def close(self):
-        self._driver.close()
+// Relacionar Usuarios con Roles con atributo Active
+CREATE (u1)-[:TIENE_ROL {Active: 'Yes'}]->(r1);
+CREATE (u3)-[:TIENE_ROL {Active: 'Yes'}]->(r2);
+CREATE (u2)-[:TIENE_ROL {Active: 'Yes'}]->(r3);
 
-    def query(self, query, parameters=None, single=False):
-        with self._driver.session() as session:
-            result = session.run(query, parameters)
-            return (result.single() if single else result.data())
+// Crear Funciones
+CREATE (f1:Function {nombre_funcion: 'Crear', description: 'Permite crear nuevos elementos'});
+CREATE (f2:Function {nombre_funcion: 'Eliminar', description: 'Permite eliminar elementos'});
+CREATE (f3:Function {nombre_funcion: 'Compartir', description: 'Permite compartir elementos con otros usuarios'});
+CREATE (f4:Function {nombre_funcion: 'Editar', description: 'Permite editar elementos existentes'});
+CREATE (f5:Function {nombre_funcion: 'Cambiar', description: 'Permite cambiar configuraciones o atributos de elementos'});
 
-# Inicializar conexión
-neo4j_conn = Neo4jConnection(uri="bolt://localhost:7687", user="neo4j", password="987654321")
+// Relacionar Roles con Funciones con atributo Active
+// Administrador
+CREATE (r1)-[:TIENE_FUNCION {Active: 'Yes'}]->(f1);
+CREATE (r1)-[:TIENE_FUNCION {Active: 'Yes'}]->(f2);
+CREATE (r1)-[:TIENE_FUNCION {Active: 'Yes'}]->(f3);
+CREATE (r1)-[:TIENE_FUNCION {Active: 'Yes'}]->(f4);
+CREATE (r1)-[:TIENE_FUNCION {Active: 'Yes'}]->(f5);
 
-user = None
+// ManipuladorElementos
+CREATE (r2)-[:TIENE_FUNCION {Active: 'Yes'}]->(f1);
+CREATE (r2)-[:TIENE_FUNCION {Active: 'Yes'}]->(f2);
+CREATE (r2)-[:TIENE_FUNCION {Active: 'Yes'}]->(f4);
+CREATE (r2)-[:TIENE_FUNCION {Active: 'Yes'}]->(f5);
 
-def crear_botones_desplegables(ventana, datos_ui_funciones, funciones_mapa):
-    for ui_dato in datos_ui_funciones:
-        nombre_ui = ui_dato["ui"]
-        funciones = ui_dato["funciones"]
+// ManipuladorExtrem
+CREATE (r3)-[:TIENE_FUNCION {Active: 'Yes'}]->(f1);
+CREATE (r3)-[:TIENE_FUNCION {Active: 'Yes'}]->(f2);
+CREATE (r3)-[:TIENE_FUNCION {Active: 'Yes'}]->(f3);
 
-        # Crear marco para cada UI
-        frame_ui = ttk.LabelFrame(ventana, text=nombre_ui)
-        frame_ui.pack(pady=10, fill="x")
+// Crear Interfaces de Usuario (UI)
+CREATE (ui1:UI {nombre_ui: 'Edición', description: 'Interfaz para edición de elementos'});
+CREATE (ui2:UI {nombre_ui: 'Compartir', description: 'Interfaz para compartir elementos'});
+CREATE (ui3:UI {nombre_ui: 'Cambiar', description: 'Interfaz para cambiar configuraciones'});
+CREATE (ui4:UI {nombre_ui: 'Administración', description: 'Interfaz para administrar el sistema'});
 
-        for funcion in funciones:
-            if funcion in funciones_mapa:
-                boton = ttk.Button(frame_ui, text=funcion, command=funciones_mapa[funcion])
-            else:
-                boton = ttk.Button(frame_ui, text=funcion, command=lambda: messagebox.showerror("Error", "Función no disponible"))
-            boton.pack(side="top", fill="x", padx=5, pady=5)
+// Relacionar Funciones con UIs con atributo Active
+CREATE (f1)-[:PERTENECE_UI {Active: 'Yes'}]->(ui1);
+CREATE (f2)-[:PERTENECE_UI {Active: 'Yes'}]->(ui1);
+CREATE (f4)-[:PERTENECE_UI {Active: 'Yes'}]->(ui1);
+CREATE (f3)-[:PERTENECE_UI {Active: 'Yes'}]->(ui2);
+CREATE (f5)-[:PERTENECE_UI {Active: 'Yes'}]->(ui3);
 
+// Crear Tipos de Archivos
+CREATE (t1:TipoArchivo {name: 'Texto'});
+CREATE (t2:TipoArchivo {name: 'Excel'});
 
-# Funciones individuales (debes implementarlas)
-def crear_documento_texto():
-    crear_documento(1, ".txt")
+// Crear Archivos
+CREATE (a1:Archivo {nombre: 'Archivo1', ruta: '/ruta/archivo1.txt', fecha_creacion: date('2023-12-01'), contenido: 'Contenido del archivo 1'});
+CREATE (a2:Archivo {nombre: 'Archivo2', ruta: '/ruta/archivo2.txt', fecha_creacion: date('2023-12-02'), contenido: 'Contenido del archivo 2'});
+CREATE (a3:Archivo {nombre: 'Archivo3', ruta: '/ruta/archivo3.txt', fecha_creacion: date('2023-12-03'), contenido: 'Contenido del archivo 3'});
+CREATE (a4:Archivo {nombre: 'Archivo4', ruta: '/ruta/archivo4.txt', fecha_creacion: date('2023-12-04'), contenido: 'Contenido del archivo 4'});
+CREATE (a5:Archivo {nombre: 'Archivo5', ruta: '/ruta/archivo5.txt', fecha_creacion: date('2023-12-05'), contenido: 'Contenido del archivo 5'});
+CREATE (a6:Archivo {nombre: 'Archivo6', ruta: '/ruta/archivo6.txt', fecha_creacion: date('2023-12-06'), contenido: 'Contenido del archivo 6'});
+CREATE (a7:Archivo {nombre: 'Archivo7', ruta: '/ruta/archivo7.txt', fecha_creacion: date('2023-12-07'), contenido: 'Contenido del archivo 7'});
+CREATE (a8:Archivo {nombre: 'Archivo8', ruta: '/ruta/archivo8.txt', fecha_creacion: date('2023-12-08'), contenido: 'Contenido del archivo 8'});
+CREATE (a9:Archivo {nombre: 'Archivo9', ruta: '/ruta/archivo9.txt', fecha_creacion: date('2023-12-09'), contenido: 'Contenido del archivo 9'});
+CREATE (a10:Archivo {nombre: 'Archivo10', ruta: '/ruta/archivo10.txt', fecha_creacion: date('2023-12-10'), contenido: 'Contenido del archivo 10'});
+CREATE (a11:Archivo {nombre: 'Archivo11', ruta: '/ruta/archivo11.txt', fecha_creacion: date('2023-12-11'), contenido: 'Contenido del archivo 11'});
+CREATE (a12:Archivo {nombre: 'Archivo12', ruta: '/ruta/archivo12.txt', fecha_creacion: date('2023-12-12'), contenido: 'Contenido del archivo 12'});
+CREATE (a13:Archivo {nombre: 'Archivo13', ruta: '/ruta/archivo13.txt', fecha_creacion: date('2023-12-13'), contenido: 'Contenido del archivo 13'});
+CREATE (a14:Archivo {nombre: 'Archivo14', ruta: '/ruta/archivo14.txt', fecha_creacion: date('2023-12-14'), contenido: 'Contenido del archivo 14'});
+CREATE (a15:Archivo {nombre: 'Archivo15', ruta: '/ruta/archivo15.txt', fecha_creacion: date('2023-12-15'), contenido: 'Contenido del archivo 15'});
+CREATE (a16:Archivo {nombre: 'Archivo16', ruta: '/ruta/archivo16.xlsx', fecha_creacion: date('2023-12-16'), contenido: 'Contenido del archivo 16'});
+CREATE (a17:Archivo {nombre: 'Archivo17', ruta: '/ruta/archivo17.xlsx', fecha_creacion: date('2023-12-17'), contenido: 'Contenido del archivo 17'});
+CREATE (a18:Archivo {nombre: 'Archivo18', ruta: '/ruta/archivo18.xlsx', fecha_creacion: date('2023-12-18'), contenido: 'Contenido del archivo 18'});
+CREATE (a19:Archivo {nombre: 'Archivo19', ruta: '/ruta/archivo19.xlsx', fecha_creacion: date('2023-12-19'), contenido: 'Contenido del archivo 19'});
+CREATE (a20:Archivo {nombre: 'Archivo20', ruta: '/ruta/archivo20.xlsx', fecha_creacion: date('2023-12-20'), contenido: 'Contenido del archivo 20'});
 
-def crear_documento_excel():
-    crear_documento(2, ".xlsx")
+// Relacionar Archivos con Tipos
+CREATE (a1)-[:ES_TIPO {Active: 'Yes'}]->(t1);
+CREATE (a2)-[:ES_TIPO {Active: 'Yes'}]->(t1);
+CREATE (a3)-[:ES_TIPO {Active: 'Yes'}]->(t1);
+CREATE (a4)-[:ES_TIPO {Active: 'Yes'}]->(t1);
+CREATE (a5)-[:ES_TIPO {Active: 'Yes'}]->(t1);
+CREATE (a6)-[:ES_TIPO {Active: 'Yes'}]->(t1);
+CREATE (a7)-[:ES_TIPO {Active: 'Yes'}]->(t1);
+CREATE (a8)-[:ES_TIPO {Active: 'Yes'}]->(t1);
+CREATE (a9)-[:ES_TIPO {Active: 'Yes'}]->(t1);
+CREATE (a10)-[:ES_TIPO {Active: 'Yes'}]->(t1);
+CREATE (a11)-[:ES_TIPO {Active: 'Yes'}]->(t1);
+CREATE (a12)-[:ES_TIPO {Active: 'Yes'}]->(t1);
+CREATE (a13)-[:ES_TIPO {Active: 'Yes'}]->(t1);
+CREATE (a14)-[:ES_TIPO {Active: 'Yes'}]->(t1);
+CREATE (a15)-[:ES_TIPO {Active: 'Yes'}]->(t1);
+CREATE (a16)-[:ES_TIPO {Active: 'Yes'}]->(t2);
+CREATE (a17)-[:ES_TIPO {Active: 'Yes'}]->(t2);
+CREATE (a18)-[:ES_TIPO {Active: 'Yes'}]->(t2);
+CREATE (a19)-[:ES_TIPO {Active: 'Yes'}]->(t2);
+CREATE (a20)-[:ES_TIPO {Active: 'Yes'}]->(t2);
 
-def crear_documento(id_tip, nom_tip):
-    ventana_crear = tk.Toplevel()
-    ventana_crear.title("Crear Documento")
-    ventana_crear.geometry("400x300")
+// Relacionar Usuarios con Archivos como Propietarios
+CREATE (u1)-[:POSEE {Active: 'Yes'}]->(a1);
+CREATE (u1)-[:POSEE {Active: 'Yes'}]->(a2);
+CREATE (u1)-[:POSEE {Active: 'Yes'}]->(a3);
+CREATE (u1)-[:POSEE {Active: 'Yes'}]->(a4);
+CREATE (u1)-[:POSEE {Active: 'Yes'}]->(a5);
+CREATE (u1)-[:POSEE {Active: 'Yes'}]->(a6);
+CREATE (u1)-[:POSEE {Active: 'Yes'}]->(a7);
+CREATE (u1)-[:POSEE {Active: 'Yes'}]->(a8);
+CREATE (u1)-[:POSEE {Active: 'Yes'}]->(a9);
+CREATE (u1)-[:POSEE {Active: 'Yes'}]->(a10);
+CREATE (u3)-[:POSEE {Active: 'Yes'}]->(a11);
+CREATE (u3)-[:POSEE {Active: 'Yes'}]->(a12);
+CREATE (u3)-[:POSEE {Active: 'Yes'}]->(a13);
+CREATE (u3)-[:POSEE {Active: 'Yes'}]->(a14);
+CREATE (u3)-[:POSEE {Active: 'Yes'}]->(a15);
+CREATE (u3)-[:POSEE {Active: 'Yes'}]->(a16);
+CREATE (u2)-[:POSEE {Active: 'Yes'}]->(a17);
+CREATE (u2)-[:POSEE {Active: 'Yes'}]->(a18);
+CREATE (u2)-[:POSEE {Active: 'Yes'}]->(a19);
+CREATE (u2)-[:POSEE {Active: 'Yes'}]->(a20);
 
-    label_nombre = tk.Label(ventana_crear, text="Nombre del archivo:")
-    label_nombre.pack(pady=5)
-    entry_nombre = tk.Entry(ventana_crear, width=30)
-    entry_nombre.pack(pady=5)
+// Crear Permisos de Archivos
+CREATE (p1:Permiso {fecha_compartido: date('2023-12-01'), fecha_expiracion: date('2023-12-10')});
+CREATE (p2:Permiso {fecha_compartido: date('2023-12-02'), fecha_expiracion: date('2023-12-11')});
+CREATE (p3:Permiso {fecha_compartido: date('2023-12-03'), fecha_expiracion: date('2023-12-12')});
+CREATE (p4:Permiso {fecha_compartido: date('2023-12-04'), fecha_expiracion: date('2023-12-13')});
+CREATE (p5:Permiso {fecha_compartido: date('2023-12-05'), fecha_expiracion: date('2023-12-14')});
+CREATE (p6:Permiso {fecha_compartido: date('2023-12-06'), fecha_expiracion: date('2023-12-15')});
+CREATE (p7:Permiso {fecha_compartido: date('2023-12-07'), fecha_expiracion: date('2023-12-16')});
+CREATE (p8:Permiso {fecha_compartido: date('2023-12-08'), fecha_expiracion: date('2023-12-17')});
+CREATE (p9:Permiso {fecha_compartido: date('2023-12-09'), fecha_expiracion: date('2023-12-18')});
 
-    def seleccionar_carpeta():
-        ruta_carpeta = filedialog.askdirectory()    
-        if ruta_carpeta:
-            entry_carpeta.delete(0, tk.END)
-            entry_carpeta.insert(0, ruta_carpeta)
+// Relacionar Permisos con Usuarios y Archivos
+CREATE (u1)-[:COMPARTE {Active: 'Yes'}]->(p1);
+CREATE (p1)-[:A_USUARIO]->(u3);
+CREATE (p1)-[:DE_ARCHIVO]->(a1);
+CREATE (u1)-[:COMPARTE {Active: 'Yes'}]->(p2);
+CREATE (p2)-[:A_USUARIO]->(u3);
+CREATE (p2)-[:DE_ARCHIVO]->(a2);
+CREATE (u1)-[:COMPARTE {Active: 'Yes'}]->(p3);
+CREATE (p3)-[:A_USUARIO]->(u3);
+CREATE (p3)-[:DE_ARCHIVO]->(a3);
+CREATE (u1)-[:COMPARTE {Active: 'Yes'}]->(p4);
+CREATE (p4)-[:A_USUARIO]->(u3);
+CREATE (p4)-[:DE_ARCHIVO]->(a4);
+CREATE (u1)-[:COMPARTE {Active: 'Yes'}]->(p5);
+CREATE (p5)-[:A_USUARIO]->(u2);
+CREATE (p5)-[:DE_ARCHIVO]->(a5);
+CREATE (u1)-[:COMPARTE {Active: 'Yes'}]->(p6);
+CREATE (p6)-[:A_USUARIO]->(u2);
+CREATE (p6)-[:DE_ARCHIVO]->(a6);
+CREATE (u1)-[:COMPARTE {Active: 'Yes'}]->(p7);
+CREATE (p7)-[:A_USUARIO]->(u2);
+CREATE (p7)-[:DE_ARCHIVO]->(a7);
+CREATE (u2)-[:COMPARTE {Active: 'Yes'}]->(p8);
+CREATE (p8)-[:A_USUARIO]->(u1);
+CREATE (p8)-[:DE_ARCHIVO]->(a8);
+CREATE (u2)-[:COMPARTE {Active: 'Yes'}]->(p9);
+CREATE (p9)-[:A_USUARIO]->(u3);
+CREATE (p9)-[:DE_ARCHIVO]->(a9);
 
-    label_carpeta = tk.Label(ventana_crear, text="Seleccionar carpeta de destino:")
-    label_carpeta.pack(pady=5)
-    entry_carpeta = tk.Entry(ventana_crear, width=30)
-    entry_carpeta.pack(pady=5)
+// Crear Carpetas
+CREATE (c1:Carpeta {nombre: 'Carpeta1', ruta: '/ruta/carpeta1', fecha_creacion: date('2023-12-01')});
+CREATE (c2:Carpeta {nombre: 'Carpeta2', ruta: '/ruta/carpeta2', fecha_creacion: date('2023-12-02')});
+CREATE (c3:Carpeta {nombre: 'Carpeta3', ruta: '/ruta/carpeta3', fecha_creacion: date('2023-12-03')});
+CREATE (c4:Carpeta {nombre: 'Carpeta4', ruta: '/ruta/carpeta4', fecha_creacion: date('2023-12-04')});
+CREATE (c5:Carpeta {nombre: 'Carpeta5', ruta: '/ruta/carpeta5', fecha_creacion: date('2023-12-05')});
 
-    button_seleccionar_carpeta = tk.Button(ventana_crear, text="Seleccionar Carpeta", command=seleccionar_carpeta)
-    button_seleccionar_carpeta.pack(pady=5)
-
-    def confirmar_crear():
-        nombre_archivo = entry_nombre.get()
-        ruta_carpeta = entry_carpeta.get()
-        nombre_carpeta = os.path.basename(ruta_carpeta)
-        
-        if not nombre_archivo:
-            messagebox.showerror("Error", "El nombre del archivo es obligatorio.")
-            return
-        if not ruta_carpeta:
-            messagebox.showerror("Error", "La ruta de la carpeta es obligatoria.")
-            return
-
-        ruta_archivo = os.path.join(ruta_carpeta, nombre_archivo + nom_tip)
-        
-        # Crear contenido simulado como bytes vacíos (no se crea el archivo real)
-        contenido_binario = b"Prueba"
-        try:
-            # Obtener el ID del usuario actual
-            id_user = obtener_id_usuario(neo4j_conn, user)
-            
-            # Obtener o crear la carpeta en la base de datos
-            id_carpeta = obtener_id_carpeta(neo4j_conn, ruta_carpeta, nombre_carpeta, id_user, datetime.now())
-            
-            # Insertar el archivo en la base de datos
-            insertar_archivo(neo4j_conn, id_user, id_tip, nombre_archivo, ruta_archivo, datetime.now(), contenido_binario, user)
-            
-            messagebox.showinfo("Éxito", f"Se ha creado el archivo '{nombre_archivo}' en la carpeta '{ruta_carpeta}'.")
-
-        except Exception as e:
-            messagebox.showerror("Error", f"No se pudo crear el archivo. Error: {e}")
-
-        finally:
-            ventana_crear.destroy()
-
-    button_confirmar = tk.Button(ventana_crear, text="Crear Archivo", command=confirmar_crear)
-    button_confirmar.pack(pady=10)
-    button_cancelar = tk.Button(ventana_crear, text="Cancelar", command=ventana_crear.destroy)
-    button_cancelar.pack(pady=5)
-
-def compartir_documento():
-    ventana_compartir = tk.Toplevel()
-    ventana_compartir.title("Compartir Documento")
-    ventana_compartir.geometry("400x320")
-    id_user = obtener_id_usuario(neo4j_db, user)
-    if not id_user:
-        messagebox.showerror("Error", "Usuario no encontrado.")
-        ventana_compartir.destroy()
-        return
-    lista_usuarios = listar_usuarios(neo4j_db, id_user)
-    lista_documentos = listar_documentos_usuario(neo4j_db, id_user)
-    if not lista_usuarios or not lista_documentos:
-        messagebox.showerror("Error", "No hay usuarios o documentos disponibles para compartir.")
-        ventana_compartir.destroy()
-        return
-
-    lista_nombres_usuarios = [usuario.nombre_usuario for usuario in lista_usuarios]
-    lista_nombres_documentos = [documento.nombre_archivo for documento in lista_documentos]
-
-    label_documento = tk.Label(ventana_compartir, text="Selecciona el archivo a compartir:")
-    label_documento.pack(pady=5)
-    variable_documento = tk.StringVar(ventana_compartir)
-    variable_documento.set(lista_nombres_documentos[0])
-    menu_documento = tk.OptionMenu(ventana_compartir, variable_documento, *lista_nombres_documentos)
-    menu_documento.pack(pady=5)
-
-    label_usuario = tk.Label(ventana_compartir, text="Selecciona el usuario:")
-    label_usuario.pack(pady=5)
-    variable_usuario = tk.StringVar(ventana_compartir)
-    variable_usuario.set(lista_nombres_usuarios[0])
-    menu_usuario = tk.OptionMenu(ventana_compartir, variable_usuario, *lista_nombres_usuarios)
-    menu_usuario.pack(pady=5)
-
-    label_fecha = tk.Label(ventana_compartir, text="Fecha de expiración (YYYY-MM-DD):")
-    label_fecha.pack(pady=5)
-    entry_fecha = tk.Entry(ventana_compartir)
-    entry_fecha.pack(pady=5)
-
-    def confirmar_compartir():
-        nom_achv = variable_documento.get()
-        nom_user_comp = variable_usuario.get()
-        fecha_exp = entry_fecha.get()
-        try:
-            fecha_exp = datetime.strptime(fecha_exp, '%Y-%m-%d').date()
-        except ValueError:
-            messagebox.showerror("Error", "Formato de fecha incorrecto.")
-            return
-        
-        try:
-            id_achv = obtener_id_documento(neo4j_db, nom_achv)
-            id_user_comp = obtener_id_usuario(neo4j_db, nom_user_comp)
-            
-            if not id_achv or not id_user_comp:
-                messagebox.showerror("Error", "No se pudo encontrar el archivo o el usuario especificado.")
-                return
-            
-            compartir_archivo(neo4j_db, id_achv, id_user, id_user_comp, datetime.now(), fecha_exp)
-            messagebox.showinfo("Éxito", "El archivo ha sido compartido exitosamente.")
-            
-        except Exception as e:
-            messagebox.showerror("Error", f"No se pudo compartir el archivo. Error: {e}")
-        finally:
-            ventana_compartir.destroy()
-
-    button_confirmar = tk.Button(ventana_compartir, text="Compartir", command=confirmar_compartir)
-    button_confirmar.pack(pady=10)
-    button_cancelar = tk.Button(ventana_compartir, text="Cancelar", command=ventana_compartir.destroy)
-    button_cancelar.pack(pady=5)
-
-def eliminar_documento():
-    ventana_eliminar = tk.Toplevel()
-    ventana_eliminar.title("Eliminar Documento")
-    ventana_eliminar.geometry("400x300")
-
-    try:
-        # Obtener el ID del usuario actual
-        id_user = obtener_id_usuario(neo4j_conn, user)
-        # Listar archivos propios
-        archivos_propios = listar_archivos_usuario(neo4j_conn, id_user)
-        lista_archivos_propios = [f"Propio: {archivo.nombre_archivo}" for archivo in archivos_propios]
-        # Listar archivos compartidos
-        archivos_compartidos = listar_archivos_compartidos(neo4j_conn, id_user)
-        lista_archivos_compartidos = [f"Compartido: {archivo.nombre_archivo}" for archivo in archivos_compartidos]
-        # Combinar ambas listas
-        lista_documentos = lista_archivos_propios + lista_archivos_compartidos
-    except Exception as e:
-        messagebox.showerror("Error", f"No se pudieron cargar los documentos. Error: {e}")
-        ventana_eliminar.destroy()
-        return
-
-    # Verificar si hay documentos disponibles
-    if not lista_documentos:
-        messagebox.showerror("Error", "No hay documentos disponibles para eliminar.")
-        ventana_eliminar.destroy()
-        return
-
-    # Crear interfaz de selección
-    label_documento = tk.Label(ventana_eliminar, text="Selecciona el archivo a eliminar:")
-    label_documento.pack(pady=5)
-    variable_documento = tk.StringVar(ventana_eliminar)
-    variable_documento.set(lista_documentos[0])  # Valor inicial
-    menu_documento = tk.OptionMenu(ventana_eliminar, variable_documento, *lista_documentos)
-    menu_documento.pack(pady=5)
-
-    def confirmar_eliminar():
-        nom_achv = variable_documento.get()
-        nom_achv = nom_achv.split(": ", 1)[1]  # Extraer nombre del archivo
-        
-        try:
-            # Eliminar el archivo de la base de datos
-            eliminar_archivo_por_nombre(neo4j_conn, nom_achv)
-            messagebox.showinfo("Éxito", f"El archivo '{nom_achv}' ha sido eliminado exitosamente.")
-        except Exception as e:
-            messagebox.showerror("Error", f"No se pudo eliminar el archivo. Error: {e}")
-        finally:
-            ventana_eliminar.destroy()
-
-    button_confirmar = tk.Button(ventana_eliminar, text="Eliminar", command=confirmar_eliminar)
-    button_confirmar.pack(pady=10)
-    button_cancelar = tk.Button(ventana_eliminar, text="Cancelar", command=ventana_eliminar.destroy)
-    button_cancelar.pack(pady=5)
-
-def mover_documento():
-    messagebox.showinfo("Función", "Mover Documento")
-
-def crear_carpeta():
-    messagebox.showinfo("Función", "Crear Carpeta")
-
-def eliminar_carpeta():
-    messagebox.showinfo("Función", "Eliminar Carpeta")
-
-funciones_mapa = {
-    "CrearDocumentoTexto": crear_documento_texto,
-    "CrearDocumentoExcel": crear_documento_excel,
-    "CompartirDocumento": compartir_documento,
-    "EliminarDocumento": eliminar_documento,
-    "MoverDocumento": mover_documento,
-    "CrearCarpeta": crear_carpeta,
-    "EliminarCarpeta": eliminar_carpeta
-}
-
-def abrir_gestor_archivos(rol_usuario):
-    root_gestor = tk.Toplevel()
-    root_gestor.title("Gestor de Archivos")
-    root_gestor.geometry("400x400")
-    
-    try:
-        # Obtener UI y funciones desde Neo4j
-        datos_ui_funciones = obtener_ui_con_funciones(neo4j_conn)
-
-        # Crear botones desplegables
-        crear_botones_desplegables(root_gestor, datos_ui_funciones, funciones_mapa)
-
-    except Exception as e:
-        messagebox.showerror("Error", f"No se pudo cargar la información. Error: {e}")
-        root_gestor.destroy()
-        
-def autenticar():
-    global user
-    user = entry_user.get()
-    contrasena = entry_password.get()
-
-    if autenticar_usuario(neo4j_conn, user, contrasena):
-        messagebox.showinfo("Éxito", f"Bienvenido {user}")
-        root.withdraw()
-        user_id = obtener_id_usuario(neo4j_conn, user)
-        # TODO: Obtener rol del usuario desde Neo4j
-        rol_usuario = "Admin"  # Simulado
-        abrir_gestor_archivos(rol_usuario)
-    else:
-        messagebox.showerror("Error", "Usuario o contraseña incorrectos")
-
-root = tk.Tk()
-root.title("Inicio de Sesión")
-root.geometry("300x200")
-
-label_user = tk.Label(root, text="Usuario:")
-label_user.pack()
-entry_user = tk.Entry(root, width=20)
-entry_user.pack()
-
-label_password = tk.Label(root, text="Contraseña:")
-label_password.pack()
-entry_password = tk.Entry(root, show="*", width=20)
-entry_password.pack()
-
-button_login = tk.Button(root, text="Iniciar Sesión", command=autenticar)
-button_login.pack(pady=10)
-
-button_exit = tk.Button(root, text="Salir", command=root.quit)
-button_exit.pack()
-
-root.mainloop()
-
-neo4j_conn.close()
+// Relacionar Carpetas con Archivos
+CREATE (c1)-[:CONTIENE {Active: 'Yes'}]->(a1);
+CREATE (c2)-[:CONTIENE {Active: 'Yes'}]->(a2);
+CREATE (c3)-[:CONTIENE {Active: 'Yes'}]->(a3);
+CREATE (c4)-[:CONTIENE {Active: 'Yes'}]->(a4);
+CREATE (c4)-[:CONTIENE {Active: 'Yes'}]->(a5);
+CREATE (c4)-[:CONTIENE {Active: 'Yes'}]->(a6);
+CREATE (c5)-[:CONTIENE {Active: 'Yes'}]->(a7);
+CREATE (c5)-[:CONTIENE {Active: 'Yes'}]->(a8);
+CREATE (c5)-[:CONTIENE {Active: 'Yes'}]->(a9);
+CREATE (c5)-[:CONTIENE {Active: 'Yes'}]->(a10);
+CREATE (c5)-[:CONTIENE {Active: 'Yes'}]->(a11);
