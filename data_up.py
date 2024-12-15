@@ -121,37 +121,74 @@ CREATE (p7:Permiso {fecha_inicio: date('2023-12-07'), fecha_expiracion: date('20
 CREATE (p8:Permiso {fecha_inicio: date('2023-12-08'), fecha_expiracion: date('2023-12-17')});
 CREATE (p9:Permiso {fecha_inicio: date('2023-12-09'), fecha_expiracion: date('2023-12-18')});
 
-UNWIND [
-    {permiso: 'p1', usuario_origen: 'steve', usuario_destino: 'laura', archivo: 'Archivo1'},
-    {permiso: 'p2', usuario_origen: 'steve', usuario_destino: 'laura', archivo: 'Archivo2'},
-    {permiso: 'p3', usuario_origen: 'steve', usuario_destino: 'laura', archivo: 'Archivo3'},
-    {permiso: 'p4', usuario_origen: 'steve', usuario_destino: 'laura', archivo: 'Archivo4'},
-    {permiso: 'p5', usuario_origen: 'steve', usuario_destino: 'andre', archivo: 'Archivo5'},
-    {permiso: 'p6', usuario_origen: 'steve', usuario_destino: 'andre', archivo: 'Archivo6'},
-    {permiso: 'p7', usuario_origen: 'steve', usuario_destino: 'andre', archivo: 'Archivo7'},
-    {permiso: 'p8', usuario_origen: 'andre', usuario_destino: 'steve', archivo: 'Archivo8'},
-    {permiso: 'p9', usuario_origen: 'andre', usuario_destino: 'laura', archivo: 'Archivo9'}
-] AS relacion
+MATCH (u_origen:Usuario {nombre_usuario: 'steve'}),
+      (u_destino:Usuario {nombre_usuario: 'laura'}),
+      (a:Archivo {nombre_archivo: 'Archivo1'}),
+      (p:Permiso {fecha_inicio: date('2023-12-01'), fecha_expiracion: date('2023-12-10')})
+MERGE (u_origen)-[:COMPARTE {Active: 'Yes'}]->(p)
+MERGE (p)-[:A_USUARIO]->(u_destino)
+MERGE (p)-[:DE_ARCHIVO]->(a);
 
-MATCH (u_origen:Usuario {nombre_usuario: relacion.usuario_origen})
-MATCH (u_destino:Usuario {nombre_usuario: relacion.usuario_destino})
-MATCH (a:Archivo {nombre_archivo: relacion.archivo})
+MATCH (u_origen:Usuario {nombre_usuario: 'steve'}),
+      (u_destino:Usuario {nombre_usuario: 'laura'}),
+      (a:Archivo {nombre_archivo: 'Archivo2'}),
+      (p:Permiso {fecha_inicio: date('2023-12-02'), fecha_expiracion: date('2023-12-11')})
+MERGE (u_origen)-[:COMPARTE {Active: 'Yes'}]->(p)
+MERGE (p)-[:A_USUARIO]->(u_destino)
+MERGE (p)-[:DE_ARCHIVO]->(a);
 
-WITH relacion, u_origen, u_destino, a,
-     CASE relacion.permiso
-         WHEN 'p1' THEN '2023-12-01'
-         WHEN 'p2' THEN '2023-12-02'
-         WHEN 'p3' THEN '2023-12-03'
-         WHEN 'p4' THEN '2023-12-04'
-         WHEN 'p5' THEN '2023-12-05'
-         WHEN 'p6' THEN '2023-12-06'
-         WHEN 'p7' THEN '2023-12-07'
-         WHEN 'p8' THEN '2023-12-08'
-         WHEN 'p9' THEN '2023-12-09'
-     END AS fecha_inicio_str
+MATCH (u_origen:Usuario {nombre_usuario: 'steve'}),
+      (u_destino:Usuario {nombre_usuario: 'laura'}),
+      (a:Archivo {nombre_archivo: 'Archivo3'}),
+      (p:Permiso {fecha_inicio: date('2023-12-03'), fecha_expiracion: date('2023-12-12')})
+MERGE (u_origen)-[:COMPARTE {Active: 'Yes'}]->(p)
+MERGE (p)-[:A_USUARIO]->(u_destino)
+MERGE (p)-[:DE_ARCHIVO]->(a);
 
-MATCH (p:Permiso {fecha_inicio: date(fecha_inicio_str)})
+MATCH (u_origen:Usuario {nombre_usuario: 'steve'}),
+      (u_destino:Usuario {nombre_usuario: 'laura'}),
+      (a:Archivo {nombre_archivo: 'Archivo4'}),
+      (p:Permiso {fecha_inicio: date('2023-12-04'), fecha_expiracion: date('2023-12-13')})
+MERGE (u_origen)-[:COMPARTE {Active: 'Yes'}]->(p)
+MERGE (p)-[:A_USUARIO]->(u_destino)
+MERGE (p)-[:DE_ARCHIVO]->(a);
 
+MATCH (u_origen:Usuario {nombre_usuario: 'steve'}),
+      (u_destino:Usuario {nombre_usuario: 'andre'}),
+      (a:Archivo {nombre_archivo: 'Archivo5'}),
+      (p:Permiso {fecha_inicio: date('2023-12-05'), fecha_expiracion: date('2023-12-14')})
+MERGE (u_origen)-[:COMPARTE {Active: 'Yes'}]->(p)
+MERGE (p)-[:A_USUARIO]->(u_destino)
+MERGE (p)-[:DE_ARCHIVO]->(a);
+
+MATCH (u_origen:Usuario {nombre_usuario: 'steve'}),
+      (u_destino:Usuario {nombre_usuario: 'andre'}),
+      (a:Archivo {nombre_archivo: 'Archivo6'}),
+      (p:Permiso {fecha_inicio: date('2023-12-06'), fecha_expiracion: date('2023-12-15')})
+MERGE (u_origen)-[:COMPARTE {Active: 'Yes'}]->(p)
+MERGE (p)-[:A_USUARIO]->(u_destino)
+MERGE (p)-[:DE_ARCHIVO]->(a);
+
+MATCH (u_origen:Usuario {nombre_usuario: 'steve'}),
+      (u_destino:Usuario {nombre_usuario: 'andre'}),
+      (a:Archivo {nombre_archivo: 'Archivo7'}),
+      (p:Permiso {fecha_inicio: date('2023-12-07'), fecha_expiracion: date('2023-12-16')})
+MERGE (u_origen)-[:COMPARTE {Active: 'Yes'}]->(p)
+MERGE (p)-[:A_USUARIO]->(u_destino)
+MERGE (p)-[:DE_ARCHIVO]->(a);
+
+MATCH (u_origen:Usuario {nombre_usuario: 'andre'}),
+      (u_destino:Usuario {nombre_usuario: 'steve'}),
+      (a:Archivo {nombre_archivo: 'Archivo8'}),
+      (p:Permiso {fecha_inicio: date('2023-12-08'), fecha_expiracion: date('2023-12-17')})
+MERGE (u_origen)-[:COMPARTE {Active: 'Yes'}]->(p)
+MERGE (p)-[:A_USUARIO]->(u_destino)
+MERGE (p)-[:DE_ARCHIVO]->(a);
+
+MATCH (u_origen:Usuario {nombre_usuario: 'andre'}),
+      (u_destino:Usuario {nombre_usuario: 'laura'}),
+      (a:Archivo {nombre_archivo: 'Archivo9'}),
+      (p:Permiso {fecha_inicio: date('2023-12-09'), fecha_expiracion: date('2023-12-18')})
 MERGE (u_origen)-[:COMPARTE {Active: 'Yes'}]->(p)
 MERGE (p)-[:A_USUARIO]->(u_destino)
 MERGE (p)-[:DE_ARCHIVO]->(a);
