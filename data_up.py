@@ -43,21 +43,26 @@ CREATE (ui2:UI {nombre_ui: 'Compartir', description: 'Interfaz para compartir el
 CREATE (ui3:UI {nombre_ui: 'Cambiar', description: 'Interfaz para cambiar configuraciones'});
 CREATE (ui4:UI {nombre_ui: 'Administración', description: 'Interfaz para administrar el sistema'});
 
-// Relacionar Funciones con Roles
-MATCH (admin:Rol {nombre_rol: 'Administrador'})
-MATCH (crear:Function)
-WHERE crear.nombre_funcion IN ['Crear', 'Eliminar', 'Compartir', 'Editar', 'Cambiar']
-CREATE (admin)-[:TIENE_FUNCION {Active: 'Yes'}]->(crear);
+// Relacionar Funciones con UIs basándose en sus nombres
+MATCH (f1:Function {nombre_funcion: 'Crear'})
+MATCH (ui1:UI {nombre_ui: 'Edición'})
+CREATE (f1)-[:PERTENECE_UI {Active: 'Yes'}]->(ui1);
 
-MATCH (admin:Rol {nombre_rol: 'Administrador'})
-MATCH (crear:Function)
-WHERE crear.nombre_funcion IN ['Crear', 'Eliminar', 'Editar', 'Cambiar']
-CREATE (admin)-[:TIENE_FUNCION {Active: 'Yes'}]->(crear);
+MATCH (f2:Function {nombre_funcion: 'Eliminar'})
+MATCH (ui1:UI {nombre_ui: 'Edición'})
+CREATE (f2)-[:PERTENECE_UI {Active: 'Yes'}]->(ui1);
 
-MATCH (admin:Rol {nombre_rol: 'Administrador'})
-MATCH (crear:Function)
-WHERE crear.nombre_funcion IN ['Crear', 'Eliminar', 'Compartir']
-CREATE (admin)-[:TIENE_FUNCION {Active: 'Yes'}]->(crear);
+MATCH (f4:Function {nombre_funcion: 'Editar'})
+MATCH (ui1:UI {nombre_ui: 'Edición'})
+CREATE (f4)-[:PERTENECE_UI {Active: 'Yes'}]->(ui1);
+
+MATCH (f3:Function {nombre_funcion: 'Compartir'})
+MATCH (ui2:UI {nombre_ui: 'Compartir'})
+CREATE (f3)-[:PERTENECE_UI {Active: 'Yes'}]->(ui2);
+
+MATCH (f5:Function {nombre_funcion: 'Cambiar'})
+MATCH (ui3:UI {nombre_ui: 'Cambiar'})
+CREATE (f5)-[:PERTENECE_UI {Active: 'Yes'}]->(ui3);
 
 // Crear Tipos de Archivos
 CREATE (t1:Tipo {nombre_tipo: 'Texto'});
@@ -89,12 +94,12 @@ CREATE (a20:Archivo {nombre_archivo: 'Archivo20', ruta_archivo: '/ruta/archivo20
 UNWIND [
     {tipo: 't1', archivos: ['Archivo1', 'Archivo2', 'Archivo3', 'Archivo4', 'Archivo5', 'Archivo6', 'Archivo7', 'Archivo8', 'Archivo9', 'Archivo10', 'Archivo11', 'Archivo12', 'Archivo13', 'Archivo14', 'Archivo15']},
     {tipo: 't2', archivos: ['Archivo16', 'Archivo17', 'Archivo18', 'Archivo19', 'Archivo20']}
-] AS relacion
-MATCH (t:Tipo {nombre_tipo: relacion.tipo})
-UNWIND relacion.archivos AS archivo
+] AS relax
+MATCH (t:Tipo {nombre_tipo: relax.tipo})
+UNWIND relax.archivos AS archivo
 MATCH (a:Archivo {nombre_archivo: archivo})
-CREATE (a)-[:ES_TIPO {Active: 'Yes'}]->(t);
-
+MERGE (a)-[r:ES_TIPO]->(t)
+ON CREATE SET r.Active = 'Yes';
 
 UNWIND [
     {usuario: 'steve', archivos: ['Archivo1', 'Archivo2', 'Archivo3', 'Archivo4', 'Archivo5', 'Archivo6', 'Archivo7', 'Archivo8', 'Archivo9', 'Archivo10']},
@@ -127,13 +132,18 @@ UNWIND [
     {permiso: 'p8', usuario_origen: 'andre', usuario_destino: 'steve', archivo: 'Archivo8'},
     {permiso: 'p9', usuario_origen: 'andre', usuario_destino: 'laura', archivo: 'Archivo9'}
 ] AS relacion
+
 MATCH (u_origen:Usuario {nombre_usuario: relacion.usuario_origen})
 MATCH (u_destino:Usuario {nombre_usuario: relacion.usuario_destino})
 MATCH (a:Archivo {nombre: relacion.archivo})
-MATCH (p:Permiso {fecha_compartido: date('2023-12-' + substring(relacion.permiso, 1, 1))})
-CREATE (u_origen)-[:COMPARTE {Active: 'Yes'}]->(p)
-CREATE (p)-[:A_USUARIO]->(u_destino)
-CREATE (p)-[:DE_ARCHIVO]->(a);
+
+MERGE (p:Permiso {nombre_permiso: relacion.permiso})
+ON CREATE SET p.fecha_compartido = date('2023-12-' + right(relacion.permiso, 1)) // Extraer día de 'pX'
+
+MERGE (u_origen)-[:COMPARTE {Active: 'Yes'}]->(p)
+MERGE (p)-[:A_USUARIO]->(u_destino)
+MERGE (p)-[:DE_ARCHIVO]->(a);
+
 
 
 CREATE (c1:Carpeta {nombre_carpeta: 'Carpeta1', ruta_carpeta: '/ruta/carpeta1', creacion_carpeta: date('2023-12-01')});
@@ -149,8 +159,10 @@ UNWIND [
     {carpeta: 'c4', archivos: ['Archivo4', 'Archivo5', 'Archivo6']},
     {carpeta: 'c5', archivos: ['Archivo7', 'Archivo8', 'Archivo9', 'Archivo10', 'Archivo11']}
 ] AS relacion
+
 MATCH (c:Carpeta {nombre_carpeta: relacion.carpeta})
 UNWIND relacion.archivos AS archivo
 MATCH (a:Archivo {nombre_archivo: archivo})
-CREATE (c)-[:CONTIENE {Active: 'Yes'}]->(a);
+
+MERGE (c)-[:CONTIENE {Active: 'Yes'}]->(a);
 
