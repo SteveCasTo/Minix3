@@ -115,8 +115,10 @@ def compartir_archivo(neo4j_db, id_documento, id_usuario, id_usuario_destino, fe
     query = """
     MATCH (a:Archivo), (u:Usuario), (ud:Usuario)
     WHERE ID(a) = $id_documento AND ID(u) = $id_usuario AND ID(ud) = $id_usuario_destino
-    CREATE (u)-[:COMPARTIO {fecha_permiso: $fecha_inicio, expiration: $fecha_expiracion}]->(a)
-    CREATE (ud)-[:RECIBIO]->(a)
+    CREATE (p:Permiso {fecha_compartido: $fecha_inicio, fecha_expiracion: $fecha_expiracion})
+    CREATE (u)-[:COMPARTIO]->(p)
+    CREATE (ud)-[:RECIBIO]->(p)
+    CREATE (p)-[:PERMITE]->(a)
     """
     neo4j_db.run_query(query, {
         "id_documento": id_documento,
@@ -128,7 +130,6 @@ def compartir_archivo(neo4j_db, id_documento, id_usuario, id_usuario_destino, fe
 
 def insertar_archivo(neo4j_db, id_usuario, id_tipo, nombre_archivo, ruta_archivo, creacion_archivo, contenido_binario, usuario):
     datos_nuevos = {
-        "id_tipo": id_tipo,
         "nombre_archivo": nombre_archivo,
         "ruta_archivo": ruta_archivo,
         "creacion_archivo": creacion_archivo,
@@ -139,16 +140,16 @@ def insertar_archivo(neo4j_db, id_usuario, id_tipo, nombre_archivo, ruta_archivo
     MATCH (u:Usuario)
     WHERE ID(u) = $id_usuario
     CREATE (a:Archivo {
-        id_tipo: $id_tipo, nombre_archivo: $nombre_archivo, 
-        ruta_archivo: $ruta_archivo, creacion_archivo: $creacion_archivo, 
-        contenido_archivo: $contenido_binario
+        nombre: $nombre_archivo, 
+        ruta: $ruta_archivo, 
+        fecha_creacion: $creacion_archivo, 
+        contenido: $contenido_binario
     })
     CREATE (u)-[:POSEE]->(a)
     """
     
     neo4j_db.run_query(query, {
         "id_usuario": id_usuario,
-        "id_tipo": id_tipo,
         "nombre_archivo": nombre_archivo,
         "ruta_archivo": ruta_archivo,
         "creacion_archivo": creacion_archivo,
@@ -157,33 +158,36 @@ def insertar_archivo(neo4j_db, id_usuario, id_tipo, nombre_archivo, ruta_archivo
     
     registrar_log(neo4j_db, "INSERT", "Archivo", datos_nuevos=datos_nuevos, usuario=usuario)
     
-def obtener_ui_con_funciones(neo4j_conn):
+def obtener_ui_con_funciones(neo4j_db):
     query = """
-    MATCH (ui:UI)-[:PERTENECE_UI]->(funcion:Funcion)
-    RETURN ui.nombre_ui AS nombre_ui, collect(funcion.nombre_funcion) AS funciones
+    MATCH (ui:UI)-[:AGRUPA]->(funcion:Funcion)
+    RETURN ui.name AS nombre_ui, collect(funcion.name) AS funciones
     """
     result = neo4j_db.run_query(query)
     return [{"ui": record["nombre_ui"], "funciones": record["funciones"]} for record in result]
 
     
-def obtener_id_carpeta(neo4j_db, ruta_carpeta, nombre_carpeta, id_usuario, creacion_carpeta):
+def obtener_id_carpeta(neo4j_db, ruta_carpeta, nombre_carpeta, id_usuario, creacion_carpeta, id_archivo):
     query_buscar = """
     MATCH (c:Carpeta {ruta_carpeta: $ruta_carpeta})
     RETURN ID(c) AS id_carpeta
     """
     result = neo4j_db.run_query(query_buscar, ruta_carpeta=ruta_carpeta).evaluate()
 
-    if result:
-        return result  # Retorna el id_carpeta si ya existe
-    
+    if result is not None:
+        return result
+
     query_crear = """
     MATCH (u:Usuario {id_usuario: $id_usuario})
+    MATCH (a:Archivo {id_archivo: $id_archivo})
     CREATE (c:Carpeta {
         ruta_carpeta: $ruta_carpeta,
         nombre_carpeta: $nombre_carpeta,
-        creacion_carpeta: $creacion_carpeta
+        creacion_carpeta: $creacion_carpeta,
+        activa: true
     })
     CREATE (u)-[:POSEE]->(c)
+    CREATE (c)-[:ARCHIVO_EN]->(a)
     RETURN ID(c) AS id_carpeta
     """
     result = neo4j_db.run_query(
@@ -191,48 +195,53 @@ def obtener_id_carpeta(neo4j_db, ruta_carpeta, nombre_carpeta, id_usuario, creac
         id_usuario=id_usuario,
         ruta_carpeta=ruta_carpeta,
         nombre_carpeta=nombre_carpeta,
-        creacion_carpeta=creacion_carpeta
+        creacion_carpeta=creacion_carpeta,
+        id_archivo=id_archivo
     ).evaluate()
 
     return result
 
+
 def listar_archivos_usuario(neo4j_db, id_usuario):
     query = """
-    MATCH (u:Usuario {ID(u): $id_usuario})-[:POSEE]->(a:Archivo)
+    MATCH (u:Usuario)-[:POSEE]->(a:Archivo)
+    WHERE ID(u) = $id_usuario
     RETURN a {
-        id_archivo : ID(a),
-        nombre_archivo: a.nombre_archivo,
-        ruta_archivo: a.ruta_archivo,
-        creacion_archivo: a.creacion_archivo
+        id_archivo: ID(a),
+        nombre_archivo: a.nombre,
+        ruta_archivo: a.ruta,
+        creacion_archivo: a.fecha_creacion
     } AS archivo
     """
-    result = neo4j_db.run_query(query, id_usuario=id_usuario)
+    result = neo4j_db.run_query(query, {"id_usuario": id_usuario})
     return [record["archivo"] for record in result]
 
 def listar_archivos_compartidos(neo4j_db, id_usuario):
     query = """
-    MATCH (a:Archivo)-[:COMPARTIO]->(u:Usuario {ID(u): $id_usuario})
+    MATCH (u:Usuario)-[:RECIBIO]->(p:Permiso)-[:PERMITE]->(a:Archivo)
+    WHERE ID(u) = $id_usuario
     RETURN a {
         id_archivo: ID(a),
-        nombre_archivo: a.nombre_archivo,
-        ruta_archivo: a.ruta_archivo,
-        creacion_archivo: a.creacion_archivo
+        nombre_archivo: a.nombre,
+        ruta_archivo: a.ruta,
+        creacion_archivo: a.fecha_creacion
     } AS archivo
     """
-    result = neo4j_db.run_query(query, id_usuario=id_usuario)
+    result = neo4j_db.run_query(query, {"id_usuario": id_usuario})
     return [record["archivo"] for record in result]
 
 def eliminar_archivo_por_nombre(neo4j_db, id_usuario, nombre_archivo):
     query_obtener = """
-    MATCH (u:Usuario {ID(u): $id_usuario})-[:POSEE]->(a:Archivo {nombre_archivo: $nombre_archivo})
+    MATCH (u:Usuario)-[:POSEE]->(a:Archivo {nombre: $nombre_archivo})
+    WHERE ID(u) = $id_usuario
     RETURN a {
         id_archivo: ID(a),
-        nombre_archivo: a.nombre_archivo,
-        ruta_archivo: a.ruta_archivo,
-        creacion_archivo: a.creacion_archivo
+        nombre_archivo: a.nombre,
+        ruta_archivo: a.ruta,
+        creacion_archivo: a.fecha_creacion
     } AS archivo
     """
-    archivo_a_eliminar = neo4j_db.run_query(query_obtener, id_usuario=id_usuario, nombre_archivo=nombre_archivo)
+    archivo_a_eliminar = neo4j_db.run_query(query_obtener, {"id_usuario": id_usuario, "nombre_archivo": nombre_archivo})
     datos_viejos = archivo_a_eliminar[0]["archivo"] if archivo_a_eliminar else None
 
     if not datos_viejos:
@@ -240,23 +249,32 @@ def eliminar_archivo_por_nombre(neo4j_db, id_usuario, nombre_archivo):
         return
 
     query_eliminar = """
-    MATCH (u:Usuario {id_usuario: $id_usuario})-[:POSEE]->(a:Archivo {nombre_archivo: $nombre_archivo})
+    MATCH (u:Usuario)-[:POSEE]->(a:Archivo {nombre: $nombre_archivo})
+    WHERE ID(u) = $id_usuario
     DETACH DELETE a
     """
-    neo4j_db.run_query(query_eliminar, id_usuario=id_usuario, nombre_archivo=nombre_archivo)
+    neo4j_db.run_query(query_eliminar, {"id_usuario": id_usuario, "nombre_archivo": nombre_archivo})
 
-    registrar_log(neo4j_db=neo4j_db,operation="DELETE",tabla="Archivo",datos_nuevos=None,datos_viejos=datos_viejos)
+    registrar_log(neo4j_db=neo4j_db, operation="DELETE", tabla="Archivo", datos_nuevos=None, datos_viejos=datos_viejos)
 
 def registrar_log(neo4j_db, operation, tabla, datos_nuevos=None, datos_viejos=None, usuario=None):
-    fecha = datetime.now().isoformat()
+    fecha_hora = datetime.now()
+    fecha = fecha_hora.date().isoformat()
+    hora = fecha_hora.time().isoformat()
     query = """
     CREATE (log:Log {
-        fecha_log: $fecha, operation: $operation, tabla: $tabla, 
-        dato_nuevo: $datos_nuevos, dato_viejo: $datos_viejos, usuario: $usuario
+        fecha: $fecha, 
+        hora: $hora,
+        operacion: $operation, 
+        tabla: $tabla, 
+        datos_nuevos: $datos_nuevos, 
+        datos_viejos: $datos_viejos, 
+        usuario: $usuario
     })
     """
     neo4j_db.run_query(query, {
         "fecha": fecha,
+        "hora": hora,
         "operation": operation,
         "tabla": tabla,
         "datos_nuevos": datos_nuevos,
