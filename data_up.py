@@ -1,3 +1,4 @@
+
 // Crear Usuarios
 CREATE (u1:Usuario {nombre_usuario: "steve", contrasena: "486579"});
 CREATE (u2:Usuario {nombre_usuario: "andre", contrasena: "135792468"});
@@ -69,31 +70,31 @@ CREATE (t1:Tipo {nombre_tipo: 'Texto'});
 CREATE (t2:Tipo {nombre_tipo: 'Excel'});
 
 // Crear Archivos
-CREATE (a1:Archivo {nombre_archivo: 'Archivo1', ruta_archivo: '/ruta/archivo1.txt', creacion_archivo: date('2023-12-01'), contenido_archivo: 'Contenido del archivo 1'});
-CREATE (a2:Archivo {nombre_archivo: 'Archivo2', ruta_archivo: '/ruta/archivo2.txt', creacion_archivo: date('2023-12-02'), contenido_archivo: 'Contenido del archivo 2'});
-CREATE (a3:Archivo {nombre_archivo: 'Archivo3', ruta_archivo: '/ruta/archivo3.txt', creacion_archivo: date('2023-12-03'), contenido_archivo: 'Contenido del archivo 3'});
-CREATE (a4:Archivo {nombre_archivo: 'Archivo4', ruta_archivo: '/ruta/archivo4.txt', creacion_archivo: date('2023-12-04'), contenido_archivo: 'Contenido del archivo 4'});
-CREATE (a5:Archivo {nombre_archivo: 'Archivo5', ruta_archivo: '/ruta/archivo5.txt', creacion_archivo: date('2023-12-05'), contenido_archivo: 'Contenido del archivo 5'});
-CREATE (a6:Archivo {nombre_archivo: 'Archivo6', ruta_archivo: '/ruta/archivo6.txt', creacion_archivo: date('2023-12-06'), contenido_archivo: 'Contenido del archivo 6'});
-CREATE (a7:Archivo {nombre_archivo: 'Archivo7', ruta_archivo: '/ruta/archivo7.txt', creacion_archivo: date('2023-12-07'), contenido_archivo: 'Contenido del archivo 7'});
-CREATE (a8:Archivo {nombre_archivo: 'Archivo8', ruta_archivo: '/ruta/archivo8.txt', creacion_archivo: date('2023-12-08'), contenido_archivo: 'Contenido del archivo 8'});
-CREATE (a9:Archivo {nombre_archivo: 'Archivo9', ruta_archivo: '/ruta/archivo9.txt', creacion_archivo: date('2023-12-09'), contenido_archivo: 'Contenido del archivo 9'});
-CREATE (a10:Archivo {nombre_archivo: 'Archivo10', ruta_archivo: '/ruta/archivo10.txt', creacion_archivo: date('2023-12-10'), contenido_archivo: 'Contenido del archivo 10'});
-CREATE (a11:Archivo {nombre_archivo: 'Archivo11', ruta_archivo: '/ruta/archivo11.txt', creacion_archivo: date('2023-12-11'), contenido_archivo: 'Contenido del archivo 11'});
-CREATE (a12:Archivo {nombre_archivo: 'Archivo12', ruta_archivo: '/ruta/archivo12.txt', creacion_archivo: date('2023-12-12'), contenido_archivo: 'Contenido del archivo 12'});
-CREATE (a13:Archivo {nombre_archivo: 'Archivo13', ruta_archivo: '/ruta/archivo13.txt', creacion_archivo: date('2023-12-13'), contenido_archivo: 'Contenido del archivo 13'});
-CREATE (a14:Archivo {nombre_archivo: 'Archivo14', ruta_archivo: '/ruta/archivo14.txt', creacion_archivo: date('2023-12-14'), contenido_archivo: 'Contenido del archivo 14'});
-CREATE (a15:Archivo {nombre_archivo: 'Archivo15', ruta_archivo: '/ruta/archivo15.txt', creacion_archivo: date('2023-12-15'), contenido_archivo: 'Contenido del archivo 15'});
-CREATE (a16:Archivo {nombre_archivo: 'Archivo16', ruta_archivo: '/ruta/archivo16.xlsx', creacion_archivo: date('2023-12-16'), contenido_archivo: 'Contenido del archivo 16'});
-CREATE (a17:Archivo {nombre_archivo: 'Archivo17', ruta_archivo: '/ruta/archivo17.xlsx', creacion_archivo: date('2023-12-17'), contenido_archivo: 'Contenido del archivo 17'});
-CREATE (a18:Archivo {nombre_archivo: 'Archivo18', ruta_archivo: '/ruta/archivo18.xlsx', creacion_archivo: date('2023-12-18'), contenido_archivo: 'Contenido del archivo 18'});
-CREATE (a19:Archivo {nombre_archivo: 'Archivo19', ruta_archivo: '/ruta/archivo19.xlsx', creacion_archivo: date('2023-12-19'), contenido_archivo: 'Contenido del archivo 19'});
-CREATE (a20:Archivo {nombre_archivo: 'Archivo20', ruta_archivo: '/ruta/archivo20.xlsx', creacion_archivo: date('2023-12-20'), contenido_archivo: 'Contenido del archivo 20'});
+CREATE (a1:Archivo {nombre_archivo: 'Texto_Diciembre', ruta_archivo: '/home/steve/Documentos_App/Diciembre/Texto_Diciembre.txt', creacion_archivo: date('2023-12-01'), contenido_archivo: 'Contenido del archivo 1'});
+CREATE (a2:Archivo {nombre_archivo: 'Apuntes_General', ruta_archivo: '/home/steve/Documentos_App/Apuntes/Apuntes_General.txt', creacion_archivo: date('2023-12-02'), contenido_archivo: 'Contenido del archivo 2'});
+CREATE (a3:Archivo {nombre_archivo: 'Lugares_Aulas', ruta_archivo: '/home/steve/Documentos_App/Aulas/Lugares_Aulas.txt', creacion_archivo: date('2023-12-03'), contenido_archivo: 'Contenido del archivo 3'});
+CREATE (a4:Archivo {nombre_archivo: 'Nombres_Estudiantes', ruta_archivo: '/home/steve/Documentos_App/General/Nombres_Estudiantes.txt', creacion_archivo: date('2023-12-04'), contenido_archivo: 'Contenido del archivo 4'});
+CREATE (a5:Archivo {nombre_archivo: 'Archivo_Borrar', ruta_archivo: '/home/steve/Documentos_App/General/Archivo_Borrar.txt', creacion_archivo: date('2023-12-05'), contenido_archivo: 'Contenido del archivo 5'});
+CREATE (a6:Archivo {nombre_archivo: 'Importante', ruta_archivo: '/home/steve/Documentos_App/General/Importante.txt', creacion_archivo: date('2023-12-06'), contenido_archivo: 'Contenido del archivo 6'});
+CREATE (a7:Archivo {nombre_archivo: 'Indicaciones_Codigo', ruta_archivo: '/home/steve/Documentos_App/Semestre5/Indicaciones_Codigo.txt', creacion_archivo: date('2023-12-07'), contenido_archivo: 'Contenido del archivo 7'});
+CREATE (a8:Archivo {nombre_archivo: 'Bad_Smells', ruta_archivo: '/home/steve/Documentos_App/Semestre5/Bad_Smells.txt', creacion_archivo: date('2023-12-08'), contenido_archivo: 'Contenido del archivo 8'});
+CREATE (a9:Archivo {nombre_archivo: 'Texto_Movible', ruta_archivo: '/home/steve/Documentos_App/Semestre5/Texto_Movible.txt', creacion_archivo: date('2023-12-09'), contenido_archivo: 'Contenido del archivo 9'});
+CREATE (a10:Archivo {nombre_archivo: 'Apuntes_Base1', ruta_archivo: '/home/steve/Documentos_App/Semestre5/Apuntes_Base1.txt', creacion_archivo: date('2023-12-10'), contenido_archivo: 'Contenido del archivo 10'});
+CREATE (a11:Archivo {nombre_archivo: 'Apuntes_Base2', ruta_archivo: '/home/steve/Documentos_App/Semestre5/Apuntes_Base2.txt', creacion_archivo: date('2023-12-11'), contenido_archivo: 'Contenido del archivo 11'});
+CREATE (a12:Archivo {nombre_archivo: 'Apuntes_TBD', ruta_archivo: '/home/steve/Documentos_App/Documentos_Texto/Apuntes_TBD.txt', creacion_archivo: date('2023-12-12'), contenido_archivo: 'Contenido del archivo 12'});
+CREATE (a13:Archivo {nombre_archivo: 'Apuntes_ASO', ruta_archivo: '/home/steve/Documentos_App/Documentos_Texto/Apuntes_ASO.txt', creacion_archivo: date('2023-12-13'), contenido_archivo: 'Contenido del archivo 13'});
+CREATE (a14:Archivo {nombre_archivo: 'Apuntes_Redes', ruta_archivo: '/home/steve/Documentos_App/Documentos_Texto/Apuntes_Redes.txt', creacion_archivo: date('2023-12-14'), contenido_archivo: 'Contenido del archivo 14'});
+CREATE (a15:Archivo {nombre_archivo: 'Apuntes_TSO', ruta_archivo: '/home/steve/Documentos_App/Documentos_Texto/Apuntes_TSO.txt', creacion_archivo: date('2023-12-15'), contenido_archivo: 'Contenido del archivo 15'});
+CREATE (a16:Archivo {nombre_archivo: 'Notas_TSO', ruta_archivo: '/home/steve/Documentos_App/Documentos_Texto/Notas_TSO.xlsx', creacion_archivo: date('2023-12-16'), contenido_archivo: 'Contenido del archivo 16'});
+CREATE (a17:Archivo {nombre_archivo: 'Notas_Redes', ruta_archivo: '/home/steve/Documentos_App/Documentos_Texto/Notas_Redes.xlsx', creacion_archivo: date('2023-12-17'), contenido_archivo: 'Contenido del archivo 17'});
+CREATE (a18:Archivo {nombre_archivo: 'Puntos_Participacion', ruta_archivo: '/home/steve/Documentos_App/Documentos_Texto/Puntos_Participacion.xlsx', creacion_archivo: date('2023-12-18'), contenido_archivo: 'Contenido del archivo 18'});
+CREATE (a19:Archivo {nombre_archivo: 'Lista_Materias', ruta_archivo: '/home/steve/Documentos_App/Documentos_Texto/Lista_Materias.xlsx', creacion_archivo: date('2023-12-19'), contenido_archivo: 'Contenido del archivo 19'});
+CREATE (a20:Archivo {nombre_archivo: 'Precios_Laptops', ruta_archivo: '/home/steve/Documentos_App/Documentos_Texto/Precios_Laptops.xlsx', creacion_archivo: date('2023-12-20'), contenido_archivo: 'Contenido del archivo 20'});
 
 
 UNWIND [
-    {tipo: 'Texto', archivos: ['Archivo1', 'Archivo2', 'Archivo3', 'Archivo4', 'Archivo5', 'Archivo6', 'Archivo7', 'Archivo8', 'Archivo9', 'Archivo10', 'Archivo11', 'Archivo12', 'Archivo13', 'Archivo14', 'Archivo15']},
-    {tipo: 'Excel', archivos: ['Archivo16', 'Archivo17', 'Archivo18', 'Archivo19', 'Archivo20']}
+    {tipo: 'Texto', archivos: ['Texto_Diciembre', 'Apuntes_General', 'Lugares_Aulas', 'Nombres_Estudiantes', 'Archivo_Borrar', 'Importante', 'Indicaciones_Codigo', 'Bad_Smells', 'Texto_Movible', 'Apuntes_Base1', 'Apuntes_Base2', 'Apuntes_TBD', 'Apuntes_ASO', 'Apuntes_Redes', 'Apuntes_TSO']},
+    {tipo: 'Excel', archivos: ['Notas_TSO', 'Notas_Redes', 'Puntos_Participacion', 'Lista_Materias', 'Precios_Laptops']}
 ] AS relax
 MATCH (t:Tipo {nombre_tipo: relax.tipo})
 UNWIND relax.archivos AS archivo
@@ -102,9 +103,9 @@ MERGE (a)-[r:ES_TIPO]->(t)
 ON CREATE SET r.Active = 'Yes';
 
 UNWIND [
-    {usuario: 'steve', archivos: ['Archivo1', 'Archivo2', 'Archivo3', 'Archivo4', 'Archivo5', 'Archivo6', 'Archivo7', 'Archivo8', 'Archivo9', 'Archivo10']},
-    {usuario: 'laura', archivos: ['Archivo11', 'Archivo12', 'Archivo13', 'Archivo14', 'Archivo15', 'Archivo16']},
-    {usuario: 'andre', archivos: ['Archivo17', 'Archivo18', 'Archivo19', 'Archivo20']}
+    {usuario: 'steve', archivos: ['Texto_Diciembre', 'Apuntes_General', 'Lugares_Aulas', 'Nombres_Estudiantes', 'Archivo_Borrar', 'Importante', 'Indicaciones_Codigo', 'Bad_Smells', 'Texto_Movible', 'Apuntes_Base1']},
+    {usuario: 'laura', archivos: ['Apuntes_Base2', 'Apuntes_TBD', 'Apuntes_ASO', 'Apuntes_Redes', 'Apuntes_TSO', 'Notas_TSO']},
+    {usuario: 'andre', archivos: ['Notas_Redes', 'Puntos_Participacion', 'Lista_Materias', 'Precios_Laptops']}
 ] AS relacion
 MATCH (u:Usuario {nombre_usuario: relacion.usuario})
 UNWIND relacion.archivos AS archivo
@@ -123,7 +124,7 @@ CREATE (p9:Permiso {fecha_inicio: date('2023-12-09'), fecha_expiracion: date('20
 
 MATCH (u_origen:Usuario {nombre_usuario: 'steve'}),
       (u_destino:Usuario {nombre_usuario: 'laura'}),
-      (a:Archivo {nombre_archivo: 'Archivo1'}),
+      (a:Archivo {nombre_archivo: 'Texto_Diciembre'}),
       (p:Permiso {fecha_inicio: date('2023-12-01'), fecha_expiracion: date('2023-12-10')})
 MERGE (u_origen)-[:COMPARTE {Active: 'Yes'}]->(p)
 MERGE (p)-[:A_USUARIO]->(u_destino)
@@ -131,7 +132,7 @@ MERGE (p)-[:DE_ARCHIVO]->(a);
 
 MATCH (u_origen:Usuario {nombre_usuario: 'steve'}),
       (u_destino:Usuario {nombre_usuario: 'laura'}),
-      (a:Archivo {nombre_archivo: 'Archivo2'}),
+      (a:Archivo {nombre_archivo: 'Apuntes_General'}),
       (p:Permiso {fecha_inicio: date('2023-12-02'), fecha_expiracion: date('2023-12-11')})
 MERGE (u_origen)-[:COMPARTE {Active: 'Yes'}]->(p)
 MERGE (p)-[:A_USUARIO]->(u_destino)
@@ -139,7 +140,7 @@ MERGE (p)-[:DE_ARCHIVO]->(a);
 
 MATCH (u_origen:Usuario {nombre_usuario: 'steve'}),
       (u_destino:Usuario {nombre_usuario: 'laura'}),
-      (a:Archivo {nombre_archivo: 'Archivo3'}),
+      (a:Archivo {nombre_archivo: 'Lugares_Aulas'}),
       (p:Permiso {fecha_inicio: date('2023-12-03'), fecha_expiracion: date('2023-12-12')})
 MERGE (u_origen)-[:COMPARTE {Active: 'Yes'}]->(p)
 MERGE (p)-[:A_USUARIO]->(u_destino)
@@ -147,7 +148,7 @@ MERGE (p)-[:DE_ARCHIVO]->(a);
 
 MATCH (u_origen:Usuario {nombre_usuario: 'steve'}),
       (u_destino:Usuario {nombre_usuario: 'laura'}),
-      (a:Archivo {nombre_archivo: 'Archivo4'}),
+      (a:Archivo {nombre_archivo: 'Nombres_Estudiantes'}),
       (p:Permiso {fecha_inicio: date('2023-12-04'), fecha_expiracion: date('2023-12-13')})
 MERGE (u_origen)-[:COMPARTE {Active: 'Yes'}]->(p)
 MERGE (p)-[:A_USUARIO]->(u_destino)
@@ -155,7 +156,7 @@ MERGE (p)-[:DE_ARCHIVO]->(a);
 
 MATCH (u_origen:Usuario {nombre_usuario: 'steve'}),
       (u_destino:Usuario {nombre_usuario: 'andre'}),
-      (a:Archivo {nombre_archivo: 'Archivo5'}),
+      (a:Archivo {nombre_archivo: 'Archivo_Borrar'}),
       (p:Permiso {fecha_inicio: date('2023-12-05'), fecha_expiracion: date('2023-12-14')})
 MERGE (u_origen)-[:COMPARTE {Active: 'Yes'}]->(p)
 MERGE (p)-[:A_USUARIO]->(u_destino)
@@ -163,7 +164,7 @@ MERGE (p)-[:DE_ARCHIVO]->(a);
 
 MATCH (u_origen:Usuario {nombre_usuario: 'steve'}),
       (u_destino:Usuario {nombre_usuario: 'andre'}),
-      (a:Archivo {nombre_archivo: 'Archivo6'}),
+      (a:Archivo {nombre_archivo: 'Importante'}),
       (p:Permiso {fecha_inicio: date('2023-12-06'), fecha_expiracion: date('2023-12-15')})
 MERGE (u_origen)-[:COMPARTE {Active: 'Yes'}]->(p)
 MERGE (p)-[:A_USUARIO]->(u_destino)
@@ -171,7 +172,7 @@ MERGE (p)-[:DE_ARCHIVO]->(a);
 
 MATCH (u_origen:Usuario {nombre_usuario: 'steve'}),
       (u_destino:Usuario {nombre_usuario: 'andre'}),
-      (a:Archivo {nombre_archivo: 'Archivo7'}),
+      (a:Archivo {nombre_archivo: 'Indicaciones_Codigo'}),
       (p:Permiso {fecha_inicio: date('2023-12-07'), fecha_expiracion: date('2023-12-16')})
 MERGE (u_origen)-[:COMPARTE {Active: 'Yes'}]->(p)
 MERGE (p)-[:A_USUARIO]->(u_destino)
@@ -179,7 +180,7 @@ MERGE (p)-[:DE_ARCHIVO]->(a);
 
 MATCH (u_origen:Usuario {nombre_usuario: 'andre'}),
       (u_destino:Usuario {nombre_usuario: 'steve'}),
-      (a:Archivo {nombre_archivo: 'Archivo8'}),
+      (a:Archivo {nombre_archivo: 'Bad_Smells'}),
       (p:Permiso {fecha_inicio: date('2023-12-08'), fecha_expiracion: date('2023-12-17')})
 MERGE (u_origen)-[:COMPARTE {Active: 'Yes'}]->(p)
 MERGE (p)-[:A_USUARIO]->(u_destino)
@@ -187,25 +188,25 @@ MERGE (p)-[:DE_ARCHIVO]->(a);
 
 MATCH (u_origen:Usuario {nombre_usuario: 'andre'}),
       (u_destino:Usuario {nombre_usuario: 'laura'}),
-      (a:Archivo {nombre_archivo: 'Archivo9'}),
+      (a:Archivo {nombre_archivo: 'Texto_Movible'}),
       (p:Permiso {fecha_inicio: date('2023-12-09'), fecha_expiracion: date('2023-12-18')})
 MERGE (u_origen)-[:COMPARTE {Active: 'Yes'}]->(p)
 MERGE (p)-[:A_USUARIO]->(u_destino)
 MERGE (p)-[:DE_ARCHIVO]->(a);
 
 
-CREATE (c1:Carpeta {nombre_carpeta: 'Carpeta1', ruta_carpeta: '/ruta/carpeta1', creacion_carpeta: date('2023-12-01')});
-CREATE (c2:Carpeta {nombre_carpeta: 'Carpeta2', ruta_carpeta: '/ruta/carpeta2', creacion_carpeta: date('2023-12-02')});
-CREATE (c3:Carpeta {nombre_carpeta: 'Carpeta3', ruta_carpeta: '/ruta/carpeta3', creacion_carpeta: date('2023-12-03')});
-CREATE (c4:Carpeta {nombre_carpeta: 'Carpeta4', ruta_carpeta: '/ruta/carpeta4', creacion_carpeta: date('2023-12-04')});
-CREATE (c5:Carpeta {nombre_carpeta: 'Carpeta5', ruta_carpeta: '/ruta/carpeta5', creacion_carpeta: date('2023-12-05')});
+CREATE (c1:Carpeta {nombre_carpeta: 'Diciembre', ruta_carpeta: '/home/steve/Documentos_App/Diciembre', creacion_carpeta: date('2023-12-01')});
+CREATE (c2:Carpeta {nombre_carpeta: 'Apuntes', ruta_carpeta: '/home/steve/Documentos_App/Apuntes', creacion_carpeta: date('2023-12-02')});
+CREATE (c3:Carpeta {nombre_carpeta: 'Aulas', ruta_carpeta: '/home/steve/Documentos_App/Aulas', creacion_carpeta: date('2023-12-03')});
+CREATE (c4:Carpeta {nombre_carpeta: 'General', ruta_carpeta: '/home/steve/Documentos_App/General', creacion_carpeta: date('2023-12-04')});
+CREATE (c5:Carpeta {nombre_carpeta: 'Semestre5', ruta_carpeta: '/home/steve/Documentos_App/Semestre5', creacion_carpeta: date('2023-12-05')});
 
 UNWIND [
-    {carpeta: 'Carpeta1', archivos: ['Archivo1']},
-    {carpeta: 'Carpeta2', archivos: ['Archivo2']},
-    {carpeta: 'Carpeta3', archivos: ['Archivo3']},
-    {carpeta: 'Carpeta4', archivos: ['Archivo4', 'Archivo5', 'Archivo6']},
-    {carpeta: 'Carpeta5', archivos: ['Archivo7', 'Archivo8', 'Archivo9', 'Archivo10', 'Archivo11']}
+    {carpeta: 'Diciembre', archivos: ['Texto_Diciembre']},
+    {carpeta: 'Apuntes', archivos: ['Apuntes_General']},
+    {carpeta: 'Aulas', archivos: ['Lugares_Aulas']},
+    {carpeta: 'General', archivos: ['Nombres_Estudiantes', 'Archivo_Borrar', 'Importante']},
+    {carpeta: 'Semestre5', archivos: ['Indicaciones_Codigo', 'Bad_Smells', 'Texto_Movible', 'Apuntes_Base1', 'Apuntes_Base2']}
 ] AS relacion
 
 MATCH (c:Carpeta {nombre_carpeta: relacion.carpeta})
@@ -213,4 +214,3 @@ UNWIND relacion.archivos AS archivo
 MATCH (a:Archivo {nombre_archivo: archivo})
 
 MERGE (c)-[:CONTIENE {Active: 'Yes'}]->(a);
-
