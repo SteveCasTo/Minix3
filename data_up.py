@@ -201,11 +201,11 @@ CREATE (c4:Carpeta {nombre_carpeta: 'Carpeta4', ruta_carpeta: '/ruta/carpeta4', 
 CREATE (c5:Carpeta {nombre_carpeta: 'Carpeta5', ruta_carpeta: '/ruta/carpeta5', creacion_carpeta: date('2023-12-05')});
 
 UNWIND [
-    {carpeta: 'c1', archivos: ['Archivo1']},
-    {carpeta: 'c2', archivos: ['Archivo2']},
-    {carpeta: 'c3', archivos: ['Archivo3']},
-    {carpeta: 'c4', archivos: ['Archivo4', 'Archivo5', 'Archivo6']},
-    {carpeta: 'c5', archivos: ['Archivo7', 'Archivo8', 'Archivo9', 'Archivo10', 'Archivo11']}
+    {carpeta: 'Carpeta1', archivos: ['Archivo1']},
+    {carpeta: 'Carpeta2', archivos: ['Archivo2']},
+    {carpeta: 'Carpeta3', archivos: ['Archivo3']},
+    {carpeta: 'Carpeta4', archivos: ['Archivo4', 'Archivo5', 'Archivo6']},
+    {carpeta: 'Carpeta5', archivos: ['Archivo7', 'Archivo8', 'Archivo9', 'Archivo10', 'Archivo11']}
 ] AS relacion
 
 MATCH (c:Carpeta {nombre_carpeta: relacion.carpeta})
