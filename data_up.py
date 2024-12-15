@@ -137,13 +137,24 @@ MATCH (u_origen:Usuario {nombre_usuario: relacion.usuario_origen})
 MATCH (u_destino:Usuario {nombre_usuario: relacion.usuario_destino})
 MATCH (a:Archivo {nombre_archivo: relacion.archivo})
 
-MATCH (p:Permiso)
-WHERE p.fecha_inicio = date('2023-12-' + right(relacion.permiso, 1))
+WITH relacion, u_origen, u_destino, a,
+     CASE relacion.permiso
+         WHEN 'p1' THEN '2023-12-01'
+         WHEN 'p2' THEN '2023-12-02'
+         WHEN 'p3' THEN '2023-12-03'
+         WHEN 'p4' THEN '2023-12-04'
+         WHEN 'p5' THEN '2023-12-05'
+         WHEN 'p6' THEN '2023-12-06'
+         WHEN 'p7' THEN '2023-12-07'
+         WHEN 'p8' THEN '2023-12-08'
+         WHEN 'p9' THEN '2023-12-09'
+     END AS fecha_inicio_str
+
+MATCH (p:Permiso {fecha_inicio: date(fecha_inicio_str)})
 
 MERGE (u_origen)-[:COMPARTE {Active: 'Yes'}]->(p)
 MERGE (p)-[:A_USUARIO]->(u_destino)
 MERGE (p)-[:DE_ARCHIVO]->(a);
-
 
 
 CREATE (c1:Carpeta {nombre_carpeta: 'Carpeta1', ruta_carpeta: '/ruta/carpeta1', creacion_carpeta: date('2023-12-01')});
