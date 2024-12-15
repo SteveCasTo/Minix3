@@ -92,8 +92,8 @@ CREATE (a20:Archivo {nombre_archivo: 'Archivo20', ruta_archivo: '/ruta/archivo20
 
 
 UNWIND [
-    {tipo: 't1', archivos: ['Archivo1', 'Archivo2', 'Archivo3', 'Archivo4', 'Archivo5', 'Archivo6', 'Archivo7', 'Archivo8', 'Archivo9', 'Archivo10', 'Archivo11', 'Archivo12', 'Archivo13', 'Archivo14', 'Archivo15']},
-    {tipo: 't2', archivos: ['Archivo16', 'Archivo17', 'Archivo18', 'Archivo19', 'Archivo20']}
+    {tipo: 'Texto', archivos: ['Archivo1', 'Archivo2', 'Archivo3', 'Archivo4', 'Archivo5', 'Archivo6', 'Archivo7', 'Archivo8', 'Archivo9', 'Archivo10', 'Archivo11', 'Archivo12', 'Archivo13', 'Archivo14', 'Archivo15']},
+    {tipo: 'Excel', archivos: ['Archivo16', 'Archivo17', 'Archivo18', 'Archivo19', 'Archivo20']}
 ] AS relax
 MATCH (t:Tipo {nombre_tipo: relax.tipo})
 UNWIND relax.archivos AS archivo
@@ -135,10 +135,10 @@ UNWIND [
 
 MATCH (u_origen:Usuario {nombre_usuario: relacion.usuario_origen})
 MATCH (u_destino:Usuario {nombre_usuario: relacion.usuario_destino})
-MATCH (a:Archivo {nombre: relacion.archivo})
+MATCH (a:Archivo {nombre_archivo: relacion.archivo})
 
-MERGE (p:Permiso {nombre_permiso: relacion.permiso})
-ON CREATE SET p.fecha_compartido = date('2023-12-' + right(relacion.permiso, 1)) // Extraer día de 'pX'
+MATCH (p:Permiso)
+WHERE p.fecha_inicio = date('2023-12-' + right(relacion.permiso, 1))
 
 MERGE (u_origen)-[:COMPARTE {Active: 'Yes'}]->(p)
 MERGE (p)-[:A_USUARIO]->(u_destino)
