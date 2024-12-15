@@ -106,15 +106,15 @@ UNWIND relacion.archivos AS archivo
 MATCH (a:Archivo {nombre_archivo: archivo})
 CREATE (u)-[:POSEE {Active: 'Yes'}]->(a);
 
-CREATE (p1:Permiso {fecha_compartido: date('2023-12-01'), fecha_expiracion: date('2023-12-10')});
-CREATE (p2:Permiso {fecha_compartido: date('2023-12-02'), fecha_expiracion: date('2023-12-11')});
-CREATE (p3:Permiso {fecha_compartido: date('2023-12-03'), fecha_expiracion: date('2023-12-12')});
-CREATE (p4:Permiso {fecha_compartido: date('2023-12-04'), fecha_expiracion: date('2023-12-13')});
-CREATE (p5:Permiso {fecha_compartido: date('2023-12-05'), fecha_expiracion: date('2023-12-14')});
-CREATE (p6:Permiso {fecha_compartido: date('2023-12-06'), fecha_expiracion: date('2023-12-15')});
-CREATE (p7:Permiso {fecha_compartido: date('2023-12-07'), fecha_expiracion: date('2023-12-16')});
-CREATE (p8:Permiso {fecha_compartido: date('2023-12-08'), fecha_expiracion: date('2023-12-17')});
-CREATE (p9:Permiso {fecha_compartido: date('2023-12-09'), fecha_expiracion: date('2023-12-18')});
+CREATE (p1:Permiso {fecha_inicio: date('2023-12-01'), fecha_expiracion: date('2023-12-10')});
+CREATE (p2:Permiso {fecha_inicio: date('2023-12-02'), fecha_expiracion: date('2023-12-11')});
+CREATE (p3:Permiso {fecha_inicio: date('2023-12-03'), fecha_expiracion: date('2023-12-12')});
+CREATE (p4:Permiso {fecha_inicio: date('2023-12-04'), fecha_expiracion: date('2023-12-13')});
+CREATE (p5:Permiso {fecha_inicio: date('2023-12-05'), fecha_expiracion: date('2023-12-14')});
+CREATE (p6:Permiso {fecha_inicio: date('2023-12-06'), fecha_expiracion: date('2023-12-15')});
+CREATE (p7:Permiso {fecha_inicio: date('2023-12-07'), fecha_expiracion: date('2023-12-16')});
+CREATE (p8:Permiso {fecha_inicio: date('2023-12-08'), fecha_expiracion: date('2023-12-17')});
+CREATE (p9:Permiso {fecha_inicio: date('2023-12-09'), fecha_expiracion: date('2023-12-18')});
 
 UNWIND [
     {permiso: 'p1', usuario_origen: 'steve', usuario_destino: 'laura', archivo: 'Archivo1'},
