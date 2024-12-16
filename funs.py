@@ -158,10 +158,10 @@ def insertar_archivo(neo4j_db, id_usuario, id_tipo, nombre_archivo, ruta_archivo
     
     registrar_log(neo4j_db, "INSERT", "Archivo", datos_nuevos=datos_nuevos, usuario=usuario)
     
-def obtener_ui_con_funciones(neo4j_db):
+def obtener_ui_con_funciones(neo4j_db, rol):
     query = """
-    MATCH (ui:UI)-[:CONTIENE]->(funcion:Funcion)
-    RETURN ui.nombre_ui AS nombre_ui, collect(funcion.nombre_funcion) AS funciones
+    MATCH (r:Rol {nombre_rol: "Administrador"})-[:TIENE_FUNCION]->(f:Function)-[:PERTENECE_UI]->(ui:UI)
+    RETURN ui.nombre_ui AS Nombre_UI, collect(f.nombre_funcion) AS Funciones
     """
     result = neo4j_db.run_query(query)
     return [{"ui": record["nombre_ui"], "funciones": record["funciones"]} for record in result]
