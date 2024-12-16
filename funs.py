@@ -160,11 +160,12 @@ def insertar_archivo(neo4j_db, id_usuario, id_tipo, nombre_archivo, ruta_archivo
     
 def obtener_ui_con_funciones(neo4j_db, rol):
     query = """
-    MATCH (r:Rol {nombre_rol: "Administrador"})-[:TIENE_FUNCION]->(f:Function)-[:PERTENECE_UI]->(ui:UI)
+    MATCH (r:Rol {nombre_rol: $rol})-[:TIENE_FUNCION]->(f:Function)-[:PERTENECE_UI]->(ui:UI)
     RETURN ui.nombre_ui AS Nombre_UI, collect(f.nombre_funcion) AS Funciones
     """
-    result = neo4j_db.run_query(query)
-    return [{"ui": record["nombre_ui"], "funciones": record["funciones"]} for record in result]
+    parameters = {"nombre_rol": rol}
+    result = neo4j_db.run_query(query, parameters)
+    return [{"ui": record["Nombre_UI"], "funciones": record["Funciones"]} for record in result]
 
     
 def obtener_id_carpeta(neo4j_db, ruta_carpeta, nombre_carpeta, id_usuario, creacion_carpeta, id_archivo):
