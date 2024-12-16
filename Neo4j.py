@@ -5,7 +5,7 @@ from tkinter import ttk,messagebox
 from tkinter import messagebox, filedialog
 from datetime import datetime
 import os
-from funs import *
+from fffu import *
 
 # Conexión a Neo4j
 class Neo4jConnection:
@@ -264,7 +264,7 @@ def abrir_gestor_archivos(rol_usuario):
     
     try:
         # Obtener UI y funciones desde Neo4j
-        datos_ui_funciones = obtener_ui_con_funciones(neo4j_conn)
+        datos_ui_funciones = obtener_ui_con_funciones(neo4j_conn, rol_usuario)
 
         # Crear botones desplegables
         crear_botones_desplegables(root_gestor, datos_ui_funciones, funciones_mapa)
@@ -277,13 +277,12 @@ def autenticar():
     global user
     user = entry_user.get()
     contrasena = entry_password.get()
-
+    
     if autenticar_usuario(neo4j_conn, user, contrasena):
         messagebox.showinfo("Éxito", f"Bienvenido {user}")
         root.withdraw()
         user_id = obtener_id_usuario(neo4j_conn, user)
-        # TODO: Obtener rol del usuario desde Neo4j
-        rol_usuario = "Admin"  # Simulado
+        rol_usuario = obtener_roles_usuario(user_id)
         abrir_gestor_archivos(rol_usuario)
     else:
         messagebox.showerror("Error", "Usuario o contraseña incorrectos")
