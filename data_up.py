@@ -20,17 +20,18 @@ MATCH (andre:Usuario {nombre_usuario: "andre"}), (manipExtrem:Rol {nombre_rol: '
 CREATE (andre)-[:TIENE_ROL {Active: 'Yes'}]->(manipExtrem);
 
 // Crear Funciones
-CREATE (f1:Function {nombre_funcion: 'Crear', description: 'Permite crear nuevos elementos'});
-CREATE (f2:Function {nombre_funcion: 'Eliminar', description: 'Permite eliminar elementos'});
-CREATE (f3:Function {nombre_funcion: 'Compartir', description: 'Permite compartir elementos con otros usuarios'});
-CREATE (f4:Function {nombre_funcion: 'Editar', description: 'Permite editar elementos existentes'});
-CREATE (f5:Function {nombre_funcion: 'Cambiar', description: 'Permite cambiar configuraciones o atributos de elementos'});
+CREATE (f1:Function {nombre_funcion: 'CrearTexto', description: 'Permite crear nuevos elementos'});
+CREATE (f2:Function {nombre_funcion: 'CrearExcel', description: 'Permite crear nuevos elementos'});
+CREATE (f3:Function {nombre_funcion: 'Eliminar', description: 'Permite eliminar elementos'});
+CREATE (f4:Function {nombre_funcion: 'Compartir', description: 'Permite compartir elementos con otros usuarios'});
+CREATE (f5:Function {nombre_funcion: 'Editar', description: 'Permite editar elementos existentes'});
+CREATE (f6:Function {nombre_funcion: 'Cambiar', description: 'Permite cambiar configuraciones o atributos de elementos'});
 
 // Relacionar Roles con Funciones con atributo Active
 UNWIND [
-    {rol: 'Administrador', funciones: ['Crear', 'Eliminar', 'Compartir', 'Editar', 'Cambiar']},
-    {rol: 'ManipuladorElementos', funciones: ['Crear', 'Eliminar', 'Editar', 'Cambiar']},
-    {rol: 'ManipuladorExtrem', funciones: ['Crear', 'Eliminar', 'Compartir']}
+    {rol: 'Administrador', funciones: ['CrearTexto', 'CrearExcel', 'Eliminar', 'Compartir', 'Editar', 'Cambiar']},
+    {rol: 'ManipuladorElementos', funciones: ['CrearTexto', 'CrearExcel', 'Eliminar', 'Editar', 'Cambiar']},
+    {rol: 'ManipuladorExtrem', funciones: ['CrearTexto', 'CrearExcel', 'Eliminar', 'Compartir']}
 ] AS relacion
 
 MATCH (r:Rol {nombre_rol: relacion.rol})
@@ -45,25 +46,29 @@ CREATE (ui3:UI {nombre_ui: 'Cambiar', description: 'Interfaz para cambiar config
 CREATE (ui4:UI {nombre_ui: 'Administración', description: 'Interfaz para administrar el sistema'});
 
 // Relacionar Funciones con UIs basándose en sus nombres
-MATCH (f1:Function {nombre_funcion: 'Crear'})
+MATCH (f1:Function {nombre_funcion: 'CrearTexto'})
 MATCH (ui1:UI {nombre_ui: 'Edición'})
 CREATE (f1)-[:PERTENECE_UI {Active: 'Yes'}]->(ui1);
 
-MATCH (f2:Function {nombre_funcion: 'Eliminar'})
+MATCH (f2:Function {nombre_funcion: 'CrearExcel'})
 MATCH (ui1:UI {nombre_ui: 'Edición'})
 CREATE (f2)-[:PERTENECE_UI {Active: 'Yes'}]->(ui1);
 
-MATCH (f4:Function {nombre_funcion: 'Editar'})
+MATCH (f3:Function {nombre_funcion: 'Eliminar'})
 MATCH (ui1:UI {nombre_ui: 'Edición'})
-CREATE (f4)-[:PERTENECE_UI {Active: 'Yes'}]->(ui1);
+CREATE (f3)-[:PERTENECE_UI {Active: 'Yes'}]->(ui1);
 
-MATCH (f3:Function {nombre_funcion: 'Compartir'})
+MATCH (f5:Function {nombre_funcion: 'Editar'})
+MATCH (ui1:UI {nombre_ui: 'Edición'})
+CREATE (f5)-[:PERTENECE_UI {Active: 'Yes'}]->(ui1);
+
+MATCH (f4:Function {nombre_funcion: 'Compartir'})
 MATCH (ui2:UI {nombre_ui: 'Compartir'})
-CREATE (f3)-[:PERTENECE_UI {Active: 'Yes'}]->(ui2);
+CREATE (f4)-[:PERTENECE_UI {Active: 'Yes'}]->(ui2);
 
-MATCH (f5:Function {nombre_funcion: 'Cambiar'})
+MATCH (f6:Function {nombre_funcion: 'Cambiar'})
 MATCH (ui3:UI {nombre_ui: 'Cambiar'})
-CREATE (f5)-[:PERTENECE_UI {Active: 'Yes'}]->(ui3);
+CREATE (f6)-[:PERTENECE_UI {Active: 'Yes'}]->(ui3);
 
 // Crear Tipos de Archivos
 CREATE (t1:Tipo {nombre_tipo: 'Texto'});
